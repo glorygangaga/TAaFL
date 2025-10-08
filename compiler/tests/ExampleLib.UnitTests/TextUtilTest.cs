@@ -28,6 +28,7 @@ public class TextUtilTest
         { "IL" },
         { "IIII" },
         { "MMMI" },
+        { "I I I I   " },
     };
   }
 
