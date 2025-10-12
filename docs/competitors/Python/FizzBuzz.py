@@ -1,4 +1,4 @@
-def fizzbuzz(n: int) -> str:
+def fizzbuzz(n: int):
 
     if n % 3 == 0 and n % 5 == 0:
         return "FizzBuzz"
@@ -22,7 +22,7 @@ def main():
             except ValueError:
                 print("Error: please enter a valid integer.")
     except EOFError:
-        print("End of input. Goodbye!")
+        print("End of input")
 
 if __name__ == "__main__":
     main()

@@ -1,10 +1,10 @@
-def gcd(a: int, b: int) -> int:
+def gcd(a: int, b: int):
 
     while b != 0:
         a, b = b, a % b
     return a
 
-def read_int(prompt: str) -> int:
+def read_int(prompt: str):
     while True:
         try:
             value = int(input(prompt))

@@ -50,6 +50,5 @@ int main()
         }
     }
 
-    std::cout << "End of input. Goodbye!" << std::endl;
     return 0;
 }
