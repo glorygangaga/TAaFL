@@ -6,7 +6,7 @@
 
 - [ ] Инициализация переменной: `let name: str = "Alice";`
 - [ ] Инициализация константы: `const name: str = "Alice";`
-- [ ] Ввод: ``
+- [ ] Ввод: `const userData:str = input();`
 - [ ] Вывод: `print("Hello world");`
 - [ ] Объявление функции: `func nothing:void() {}`
 - [ ] Возврат из функции: `func greet:str(user:str) { return user; }`
@@ -31,6 +31,8 @@
 - [ ] Арифметический оператор суммы и вычитания: `const value:int = x + y - z;`
 - [ ] Арифметический оператор умноженя и возведения в степень: `const area:float = PI * R ** 2;`
 - [ ] Арифметический оператор деления и модуля: `const value:float = 7 % 2 / 4;`
+- [ ] Арифметический оператор инкремента: `const value:int = x++;`
+- [ ] Арифметический оператор декремента: `const value:int = x--;`
 - [ ] Оператор сравнения равно: `const isSame:bool = x == y;`
 - [ ] Оператор сравнения не равно: `const isNotSame:bool = x != y;`
 - [ ] Оператор сравнения больше: `const isBigger:bool = x > y;`
