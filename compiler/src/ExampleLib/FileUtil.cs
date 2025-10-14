@@ -30,11 +30,16 @@ public static class FileUtil
   public static void AddLineNumbers(string path)
   {
     List<string> lines = File.ReadLines(path, Encoding.UTF8).ToList();
+    if (lines.Count == 0)
+    {
+      return;
+    }
 
     using FileStream file = File.Open(path, FileMode.Truncate, FileAccess.Write);
     for (int i = 0, iMax = lines.Count; i < iMax; ++i)
     {
-      byte[] bytes = Encoding.UTF8.GetBytes((i + 1).ToString() + ". " + lines[i]);
+      string numberedLine = $"{i + 1}. {lines[i]}";
+      byte[] bytes = Encoding.UTF8.GetBytes(numberedLine);
       file.Write(bytes);
 
       if (i != iMax - 1)

@@ -74,6 +74,23 @@ public class FileUtilTests
   }
 
   [Fact]
+  public void CanAddOneLineNumbersFile()
+  {
+    const string unlined = """
+                            Играют волны — ветер свищет,
+                            """;
+    const string lined = """
+                          1. Играют волны — ветер свищет,
+                          """;
+
+    using TempFile file = TempFile.Create(unlined);
+    FileUtil.AddLineNumbers(file.Path);
+
+    string actual = File.ReadAllText(file.Path);
+    Assert.Equal(lined, actual);
+  }
+
+  [Fact]
   public void CanAddLineNumbersEmptyFile()
   {
     using TempFile file = TempFile.Create("");

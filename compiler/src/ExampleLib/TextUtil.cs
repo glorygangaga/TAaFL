@@ -11,25 +11,25 @@ public static class TextUtil
   private static readonly Rune[] Apostrophes = [new Rune('\''), new Rune('`')];
 
   private static readonly Dictionary<char, int> RomanValues = new()
-    {
-      { 'I', 1 },
-      { 'V', 5 },
-      { 'X', 10 },
-      { 'L', 50 },
-      { 'C', 100 },
-      { 'D', 500 },
-      { 'M', 1000 },
-    };
+  {
+    { 'I', 1 },
+    { 'V', 5 },
+    { 'X', 10 },
+    { 'L', 50 },
+    { 'C', 100 },
+    { 'D', 500 },
+    { 'M', 1000 },
+  };
 
   private static readonly Dictionary<string, int> DoubleRomanValues = new()
-    {
-      { "IV", 4 },
-      { "IX", 9 },
-      { "XL", 40 },
-      { "XC", 90 },
-      { "CD", 400 },
-      { "CM", 900 },
-    };
+  {
+    { "IV", 4 },
+    { "IX", 9 },
+    { "XL", 40 },
+    { "XC", 90 },
+    { "CD", 400 },
+    { "CM", 900 },
+  };
 
   // Состояния распознавателя слов.
   private enum WordState

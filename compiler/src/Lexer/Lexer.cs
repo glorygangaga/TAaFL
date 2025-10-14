@@ -1,8 +1,18 @@
 ﻿namespace Lexer;
 
-public static class Lexer
+public class Lexer
 {
-  public static string Nothing()
+  private static readonly Dictionary<string, string> Keyword = new()
+  {
+    { "afe", "asdf" },
+    { "", "" },
+  };
+
+  public Lexer(string text)
+  {
+  }
+
+  public string ParseToken()
   {
     return "";
   }
