@@ -1,6 +1,6 @@
 ﻿namespace Lexer;
 
-public class Lexer
+public class Lexer(string text)
 {
   private static readonly Dictionary<string, string> Keyword = new()
   {
@@ -8,12 +8,21 @@ public class Lexer
     { "", "" },
   };
 
-  public Lexer(string text)
-  {
-  }
+  private readonly TextScanner scanner = new TextScanner(text);
 
-  public string ParseToken()
+  public Token ParseToken()
   {
-    return "";
+    if (scanner.IsEnd())
+    {
+      return new Token(TokenType.EndOfFile);
+    }
+
+    char ch = scanner.Peek();
+
+    if (char.IsLetter(ch) || ch == '_')
+    {
+    }
+
+    return new Token(TokenType.EndOfFile);
   }
 }

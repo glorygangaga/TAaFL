@@ -2,10 +2,10 @@ namespace Lexer;
 
 public class Token(
   TokenType type,
-  TokenValue value
+  TokenValue? value = null
 )
 {
   public TokenType Type { get; } = type;
 
-  public TokenValue Value { get; } = value;
+  public TokenValue? Value { get; } = value;
 }
