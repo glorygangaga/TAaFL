@@ -47,13 +47,12 @@ public static class LexicalStats
     TokenType.OpenParenthesis, TokenType.CloseParenthesis,
   };
 
-  private static LexicalData lexemData = new();
-
   public static string CollectFromFile(string path)
   {
     string text = File.ReadAllText(path, Encoding.UTF8);
     Lexer lexer = new(text);
 
+    LexicalData lexemData = new();
     for (Token t = lexer.ParseToken(); t.Type != TokenType.EndOfFile; t = lexer.ParseToken())
     {
       if (t.Type == TokenType.Identifier)
