@@ -113,26 +113,6 @@ public enum TokenType
   Print,
 
   /// <summary>
-  /// Спец. строчный символ новая строка "\n"
-  /// </summary>
-  Newline,
-
-  /// <summary>
-  /// Спец. строчный символ табуляция "\t"
-  /// </summary>
-  HorizontalTab,
-
-  /// <summary>
-  /// Спец. строчный символ обратный слеш "\\"
-  /// </summary>
-  Backslash,
-
-  /// <summary>
-  /// Спец. строчный символ двойная кавычка "\""
-  /// </summary>
-  EscapedDoubleQuote,
-
-  /// <summary>
   /// Оператор присваивания равно "=".
   /// </summary>
   Assignment,
@@ -171,6 +151,16 @@ public enum TokenType
   /// Арифметический оператор плюс "+"
   /// </summary>
   Plus,
+
+  /// <summary>
+  /// Арифметический оператор инкремента "++"
+  /// </summary>
+  Increment,
+
+  /// <summary>
+  /// Арифметический оператор декремента "--"
+  /// </summary>
+  Decrement,
 
   /// <summary>
   /// Арифметический оператор минус "-"

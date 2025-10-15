@@ -7,17 +7,11 @@ public class TextScanner(string text)
 
   public char Peek(int n = 0)
   {
-    int position = n;
-    return text.Length > position ? text[position] : '\0';
+    int position = this.position + n;
+    return text.Length > this.position ? text[position] : '\0';
   }
 
-  public void Advance()
-  {
-    position++;
-  }
+  public void Advance() => position++;
 
-  public bool IsEnd()
-  {
-    return position >= text.Length;
-  }
+  public bool IsEnd() => position >= text.Length;
 }
