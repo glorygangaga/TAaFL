@@ -143,7 +143,9 @@ public class LexerTest
         ]
       },
       {
-        "/* \nЭто многострочный комментарий\n */", [
+        @"/*
+         Это многострочный комментарий
+        */", [
           new Token(TokenType.OpenBlockComments),
           new Token(TokenType.CloseBlockComments)
         ]
@@ -497,6 +499,56 @@ public class LexerTest
           new Token(TokenType.CloseCurlyBracket)
         ]
       },
+      {
+        "print(car.brand);", [
+          new Token(TokenType.Print),
+          new Token(TokenType.OpenParenthesis),
+          new Token(TokenType.Identifier, new TokenValue("car")),
+          new Token(TokenType.DotFieldAccess),
+          new Token(TokenType.Identifier, new TokenValue("brand")),
+          new Token(TokenType.CloseParenthesis),
+          new Token(TokenType.Semicolon),
+        ]
+      },
+      {
+        "if (x == false) { print(x); }", [
+          new Token(TokenType.If),
+          new Token(TokenType.OpenParenthesis),
+          new Token(TokenType.Identifier, new TokenValue("x")),
+          new Token(TokenType.Equal),
+          new Token(TokenType.False),
+          new Token(TokenType.CloseParenthesis),
+          new Token(TokenType.OpenCurlyBrace),
+          new Token(TokenType.Print),
+          new Token(TokenType.OpenParenthesis),
+          new Token(TokenType.Identifier, new TokenValue("x")),
+          new Token(TokenType.CloseParenthesis),
+          new Token(TokenType.Semicolon),
+          new Token(TokenType.CloseCurlyBracket)
+        ]
+      },
+      {
+        @"const string: str = ""многострочный 
+        литерал"";", [
+          new Token(TokenType.Const),
+          new Token(TokenType.Identifier, new TokenValue("string")),
+          new Token(TokenType.ColonTypeIndication),
+          new Token(TokenType.Str),
+          new Token(TokenType.Assignment),
+          new Token(TokenType.Error, new TokenValue("многострочный ")),
+          new Token(TokenType.Identifier, new TokenValue("литерал")),
+          new Token(TokenType.Error, new TokenValue(";")),
+        ]
+      },
+      {
+      @"print(""\n \t \\ \"""");", [
+          new Token(TokenType.Print),
+          new Token(TokenType.OpenParenthesis),
+          new Token(TokenType.StringLiteral, new TokenValue("\n \t \\ \"")),
+          new Token(TokenType.CloseParenthesis),
+          new Token(TokenType.Semicolon),
+        ]
+      },
     };
   }
 
@@ -546,13 +598,13 @@ public class LexerTest
           */
           for (let i:int = 1; i <= limit; i++)
           {
-              total += sum(i, 2);
+            total += sum(i, 2);
           }
 
           while (total > 10)
           {
-              print(""Reducing total ="", total);
-              total = total - 3;
+            print(""Reducing total ="", total);
+            total = total - 3;
           }
 
           if (total == 7)
@@ -577,10 +629,10 @@ public class LexerTest
 
   private static string Normalize(string s) => string.Concat(s.Where(c => !char.IsWhiteSpace(c)));
 
-  private static List<Token> Tokenize(string sql)
+  private static List<Token> Tokenize(string text)
   {
     List<Token> results = [];
-    Lexer lexer = new(sql);
+    Lexer lexer = new(text);
 
     for (Token t = lexer.ParseToken(); t.Type != TokenType.EndOfFile; t = lexer.ParseToken())
     {

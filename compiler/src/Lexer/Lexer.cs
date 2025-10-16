@@ -112,8 +112,9 @@ public class Lexer(string text)
     string content = "";
     while (scanner.Peek() != '"')
     {
-      if (scanner.IsEnd())
+      if (scanner.Peek() == '\n' || scanner.Peek() == '\r' || scanner.IsEnd())
       {
+        scanner.Advance();
         return new Token(TokenType.Error, new TokenValue(content));
       }
 
@@ -150,11 +151,11 @@ public class Lexer(string text)
           specialChar = '\\';
           break;
         case '"':
-          specialChar = '"';
+          specialChar = '\"';
           break;
         default:
           specialChar = '\0';
-          return false;
+          break;
       }
 
       scanner.Advance();
@@ -268,6 +269,8 @@ public class Lexer(string text)
         return new Token(TokenType.Division);
       case '%':
         return new Token(TokenType.Remainder);
+      case '.':
+        return new Token(TokenType.DotFieldAccess);
       default:
         return new Token(TokenType.Error, new TokenValue(ch.ToString()));
     }
@@ -293,7 +296,7 @@ public class Lexer(string text)
   private void SkipBlockComments()
   {
     scanner.Advance();
-    while (scanner.Peek() != '*' && scanner.Peek(1) != '/')
+    while (scanner.Peek() != '*' && scanner.Peek(1) != '/' && !scanner.IsEnd())
     {
       scanner.Advance();
     }
