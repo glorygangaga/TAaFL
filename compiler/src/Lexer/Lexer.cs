@@ -45,7 +45,7 @@ public class Lexer(string text)
     {
       return ParseIdentifierOrKeyword();
     }
-    else if (char.IsAsciiDigit(ch))
+    else if (char.IsAsciiDigit(ch) || (ch == '-' && char.IsAsciiDigit(scanner.Peek(1))))
     {
       return ParseNumberLiteral();
     }
@@ -81,6 +81,12 @@ public class Lexer(string text)
   private Token ParseNumberLiteral()
   {
     string value = "";
+
+    if (scanner.Peek() == '-')
+    {
+      value += scanner.Peek();
+      scanner.Advance();
+    }
 
     while (char.IsAsciiDigit(scanner.Peek()))
     {
