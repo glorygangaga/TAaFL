@@ -141,44 +141,12 @@ constant = "Pi" | "Euler" ;
 letter       = "A" | "B" | ... | "Z" | "a" | "b" | ... | "z" | "_" ;
 digit        = "0" | "1" | ... | "9" ;
 
-**Первичные выражения**
 
-primary_expr =
-      identifier
-    | literal
-    | boolean
-    | constant
-    | "(", expression, ")" ;
-
-
-**Постфиксные выражения**
-
-
-postfix_expr =
-      ( primary_expr | function_call ),
-      { member_access | index_access | "++" | "--" } ;
-
-function_call =
-      identifier, "(", [ argument_list ], ")" ;
-
-member_access =
-      postfix_expr, ".", identifier ;
-
-index_access =
-      postfix_expr, "[", expression, "]" ;
-
-argument_list =
-      expression, { ",", expression } ;
-
-
-**Унарные и бинарные выражения**
+**Выражения**
 
 expression =
-      assignment_expr ;
-
-assignment_expr =
-      or_expr, [ "=", assignment_expr ] ;
-      
+      or_expr ;
+  
 or_expr =
       and_expr, { "or", and_expr } ;
       
@@ -187,7 +155,6 @@ and_expr =
       
 equality_expr =
       comparison_expr, { ("==" | "!="), comparison_expr } ;
-
 
 comparison_expr =
       arith_expr, { ("<" | ">" | "<=" | ">="), arith_expr } ;
@@ -203,5 +170,90 @@ power_expr =
       unary_expr, { "**", unary_expr } ;
 
 unary_expr =
-      [ "++" | "--" | "+" | "-" | "not" ], unary_expr
+      ( "++" | "--" ), unary_expr
+    | ( "+" | "-" | "not" ), unary_expr
     | postfix_expr ;
+
+postfix_expr = primary_expr, { postfix_operator } ;
+
+postfix_operator = 
+      function_call
+    | member_access  
+    | index_access
+    | "++" 
+    | "--" ;
+
+function_call = "(", [ argument_list ], ")" ;
+member_access = ".", identifier ;
+index_access = "[", expression, "]" ;
+
+primary_expr = 
+      identifier
+    | literal
+    | boolean
+    | constant
+    | array_literal
+    | struct_literal
+    | "(", expression, ")" ;
+
+array_literal = "[", [ expression_list ], "]" ;
+expression_list = expression, { ",", expression } ;
+
+struct_literal = identifier, "{", [ field_initializer_list ], "}" ;
+field_initializer_list = field_initializer, { ",", field_initializer } ;
+field_initializer = identifier, ":", expression ;
+
+argument_list = expression, { ",", expression } ;
+
+
+**ИНСТРУКЦИИ**
+
+program = { statement } ;
+
+statement = 
+      expression_statement
+    | assignment_statement
+    | variable_declaration
+    | function_declaration
+    | struct_declaration
+    | if_statement
+    | while_statement
+    | for_statement
+    | return_statement
+    | block ;
+
+expression_statement = expression, ";" ;
+
+assignment_statement = assignable_expr, "=", expression, ";" ;
+
+assignable_expr = 
+      identifier
+    | member_access_expr
+    | index_access_expr ;
+
+member_access_expr = (identifier | member_access_expr), ".", identifier ;
+index_access_expr = (identifier | member_access_expr | index_access_expr), "[", expression, "]" ;
+
+variable_declaration = ( "let" | "const" ), identifier, ":", type, [ "=", expression ], ";" ;
+
+type = "int" | "float" | "str" | "bool" | "void" | identifier | type, "[]" ;
+
+function_declaration = "func", identifier, ":", type, "(", [ parameter_list ], ")", block ;
+
+struct_declaration = "struct", identifier, "{", { field_declaration }, "}" ;
+field_declaration = identifier, ":", type, ";" ;
+
+parameter_list = parameter, { ",", parameter } ;
+parameter = identifier, ":", type ;
+
+if_statement = "if", "(", expression, ")", block, [ "else", ( if_statement | block ) ] ;
+
+while_statement = "while", "(", expression, ")", block ;
+
+for_statement = "for", "(", for_init, ";", [ expression ], ";", [ for_update ], ")", block ;
+for_init = [ variable_declaration | expression_statement ] ;
+for_update = expression ;
+
+return_statement = "return", [ expression ], ";" ;
+
+block = "{", { statement }, "}" ;
