@@ -126,12 +126,12 @@ public class LexerTest
         ]
       },
       {
-        "// Это комментарий", [
+        "/// Это комментарий", [
           new Token(TokenType.SingleLineComment)
         ]
       },
       {
-        "let x:int = 5; // Комментарий после кода", [
+        "let x:int = 5; /// Комментарий после кода", [
           new Token(TokenType.Let),
           new Token(TokenType.Identifier, new TokenValue("x")),
           new Token(TokenType.ColonTypeIndication),
@@ -549,6 +549,19 @@ public class LexerTest
           new Token(TokenType.Semicolon),
         ]
       },
+      {
+        "const value:int = 1 // 3;", [
+          new Token(TokenType.Const),
+          new Token(TokenType.Identifier, new TokenValue("value")),
+          new Token(TokenType.ColonTypeIndication),
+          new Token(TokenType.Int),
+          new Token(TokenType.Assignment),
+          new Token(TokenType.NumberLiteral, new TokenValue("1")),
+          new Token(TokenType.IntegerDivision),
+          new Token(TokenType.NumberLiteral, new TokenValue("3")),
+          new Token(TokenType.Semicolon),
+          ]
+      },
     };
   }
 
@@ -581,7 +594,7 @@ public class LexerTest
       {
         @"import std;
 
-        // функция для суммирования переменных
+        /// функция для суммирования переменных
         func sum:int(a:int, b:int)
         {
           return a + b;
@@ -589,7 +602,7 @@ public class LexerTest
 
         func main:void()
         {
-          let total:int = 0; // инициализация total
+          let total:int = 0; /// инициализация total
           let limit:int = 5;
           
           /*

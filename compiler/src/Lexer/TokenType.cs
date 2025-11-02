@@ -178,6 +178,11 @@ public enum TokenType
   Division,
 
   /// <summary>
+  /// Арифметический целочисленный оператор деления "//"
+  /// </summary>
+  IntegerDivision,
+
+  /// <summary>
   /// Арифметический оператор остаток "%"
   /// </summary>
   Remainder,
@@ -268,9 +273,54 @@ public enum TokenType
   DoubleQuote,
 
   /// <summary>
-  /// Однострочные комментарии
+  /// Однострочные комментарии '///'
   /// </summary>
   SingleLineComment,
+
+  /// <summary>
+  /// Константа 3.14159265358
+  /// </summary>
+  Pi,
+
+  /// <summary>
+  /// Константа 2.71828182846
+  /// </summary>
+  Euler,
+
+  /// <summary>
+  /// модуль числа
+  /// </summary>
+  Abs,
+
+  /// <summary>
+  /// минимальное значение
+  /// </summary>
+  Min,
+
+  /// <summary>
+  /// максимальное значение
+  /// </summary>
+  Max,
+
+  /// <summary>
+  /// возведение в степень
+  /// </summary>
+  Pow,
+
+  /// <summary>
+  /// округление до ближайшего целого
+  /// </summary>
+  Round,
+
+  /// <summary>
+  /// округление вверх
+  /// </summary>
+  Ceil,
+
+  /// <summary>
+  /// округление вниз
+  /// </summary>
+  Floor,
 
   /// <summary>
   ///  Конец файла.

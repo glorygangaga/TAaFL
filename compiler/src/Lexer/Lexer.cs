@@ -26,6 +26,15 @@ public class Lexer(string text)
     { "import", TokenType.Import },
     { "input", TokenType.Input },
     { "print", TokenType.Print },
+    { "Pi", TokenType.Pi },
+    { "Euler", TokenType.Euler },
+    { "abs", TokenType.Abs },
+    { "min", TokenType.Min },
+    { "max", TokenType.Max },
+    { "pow", TokenType.Pow },
+    { "round", TokenType.Round },
+    { "ceil", TokenType.Ceil },
+    { "floor", TokenType.Floor },
   };
 
   private readonly TextScanner scanner = new TextScanner(text);
@@ -259,12 +268,18 @@ public class Lexer(string text)
         }
 
         return new Token(TokenType.Multiplication);
-
       case '/':
         if (scanner.Peek() == '/')
         {
-          SkipSingleLineComment();
-          return new Token(TokenType.SingleLineComment);
+          if (scanner.Peek(1) == '/')
+          {
+            scanner.Advance();
+            SkipSingleLineComment();
+            return new Token(TokenType.SingleLineComment);
+          }
+
+          scanner.Advance();
+          return new Token(TokenType.IntegerDivision);
         }
         else if (scanner.Peek() == '*')
         {

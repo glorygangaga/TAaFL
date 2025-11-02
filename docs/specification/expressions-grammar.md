@@ -1,26 +1,26 @@
-* Нужно описать грамматику выражений для своего языка программирования
+- Нужно описать грамматику выражений для своего языка программирования
 
-#  Грамматика выражений языка
+# Грамматика выражений языка
 
 ## 1. Общие принципы синтаксиса выражений
 
 Выражения могут состоять из:
 
-* **литералов** (int, float, str, bool, константы Pi, Euler);
-* **идентификаторов** (в том числе имена переменных и функций);
-* **вызовов функций**;
-* **арифметических**, **сравнительных** и **логических операторов**;
-* **операторов инкремента и декремента (`++`, `--`)**;
-* **группирующих скобок** `()`;
-* **операции доступа к полям** через `.` (точку);
-* **унарных операторов** `+`, `-`, `not`;
-* **индексирования массивов ([])**;
-* **операции присваивания** `=`;
-* **оператора указания типа** `:` (в объявлениях, не внутри выражений)
+- **литералов** (int, float, str, bool, константы Pi, Euler);
+- **идентификаторов** (в том числе имена переменных и функций);
+- **вызовов функций**;
+- **арифметических**, **сравнительных** и **логических операторов**;
+- **операторов инкремента и декремента (`++`, `--`)**;
+- **группирующих скобок** `()`;
+- **операции доступа к полям** через `.` (точку);
+- **унарных операторов** `+`, `-`, `not`;
+- **индексирования массивов ([])**;
+- **операции присваивания** `=`;
+- **оператора указания типа** `:` (в объявлениях, не внутри выражений)
 
 ---
 
-##  2. Операторы
+## 2. Операторы
 
 ### Арифметические операторы
 
@@ -37,6 +37,7 @@
 ---
 
 ### Операторы инкремента и декремента
+
 | Символ | Описание                            |
 | :----- | :---------------------------------- |
 | `++`   | увеличение значения переменной на 1 |
@@ -48,7 +49,7 @@ i++;   // постфиксный инкремент
 --j;   // префиксный декремент
 j--;   // постфиксный декремент
 ```
-  
+
 ---
 
 ### Операторы сравнения
@@ -86,7 +87,7 @@ j--;   // постфиксный декремент
 
 ---
 
-##  3. Приоритет и ассоциативность операторов
+## 3. Приоритет и ассоциативность операторов
 
 | Приоритет (высокий → низкий) | Операторы              | Ассоциативность |
 | :--------------------------- | :--------------------- | :-------------- |
@@ -101,7 +102,6 @@ j--;   // постфиксный декремент
 | 9                            | `and`                  | слева           |
 | 10                           | `or`                   | слева           |
 | 11                           | `=`                    | справа          |
-
 
 ---
 
@@ -119,8 +119,8 @@ j--;   // постфиксный декремент
 
 **Числовые константы:**
 
-* `Pi` (3.14159265358)
-* `Euler` (2.71828182846)
+- `Pi` (3.14159265358)
+- `Euler` (2.71828182846)
 
 ---
 
@@ -131,70 +131,68 @@ literal = number | string;
 number = integer | float ;
 integer = digit, { digit } ;
 float = digit, { digit }, ".", digit, { digit } ;
-string = '"', { character - '"' | escape_sequence }, '"' ;
+string = '"', { character - '"' | escape*sequence }, '"' ;
 character = ? любой символ Unicode ? ;
 escape_sequence = "\\", ( "\"" | "\\" | "n" | "t" ) ;
-boolean      = "true" | "false" ;
-identifier   = (letter | "_"), { letter | digit | "_" } ;
+boolean = "true" | "false" ;
+identifier = (letter | "*"), { letter | digit | "\_" } ;
 constant = "Pi" | "Euler" ;
 
-letter       = "A" | "B" | ... | "Z" | "a" | "b" | ... | "z" | "_" ;
-digit        = "0" | "1" | ... | "9" ;
-
+letter = "A" | "B" | ... | "Z" | "a" | "b" | ... | "z" | "\_" ;
+digit = "0" | "1" | ... | "9" ;
 
 **Выражения**
 
 expression =
-      or_expr ;
-  
+or_expr ;
+
 or_expr =
-      and_expr, { "or", and_expr } ;
-      
+and_expr, { "or", and_expr } ;
+
 and_expr =
-      equality_expr, { "and", equality_expr } ;
-      
+equality_expr, { "and", equality_expr } ;
+
 equality_expr =
-      comparison_expr, { ("==" | "!="), comparison_expr } ;
+comparison_expr, { ("==" | "!="), comparison_expr } ;
 
 comparison_expr =
-      arith_expr, { ("<" | ">" | "<=" | ">="), arith_expr } ;
+arith_expr, { ("<" | ">" | "<=" | ">="), arith_expr } ;
 
 arith_expr =
-      term_expr, { ("+" | "-"), term_expr } ;
+term_expr, { ("+" | "-"), term_expr } ;
 
-      
 term_expr =
-      power_expr, { ("*" | "/" | "%" | "//"), power_expr } ;
+power_expr, { ("\*" | "/" | "%" | "//"), power_expr } ;
 
 power_expr =
-      unary_expr, { "**", unary_expr } ;
+unary_expr, { "\*\*", unary_expr } ;
 
 unary_expr =
-      ( "++" | "--" ), unary_expr
-    | ( "+" | "-" | "not" ), unary_expr
-    | postfix_expr ;
+( "++" | "--" ), unary_expr
+| ( "+" | "-" | "not" ), unary_expr
+| postfix_expr ;
 
 postfix_expr = primary_expr, { postfix_operator } ;
 
-postfix_operator = 
-      function_call
-    | member_access  
-    | index_access
-    | "++" 
-    | "--" ;
+postfix_operator =
+function_call
+| member_access  
+ | index_access
+| "++"
+| "--" ;
 
 function_call = "(", [ argument_list ], ")" ;
 member_access = ".", identifier ;
 index_access = "[", expression, "]" ;
 
-primary_expr = 
-      identifier
-    | literal
-    | boolean
-    | constant
-    | array_literal
-    | struct_literal
-    | "(", expression, ")" ;
+primary_expr =
+identifier
+| literal
+| boolean
+| constant
+| array_literal
+| struct_literal
+| "(", expression, ")" ;
 
 array_literal = "[", [ expression_list ], "]" ;
 expression_list = expression, { ",", expression } ;
@@ -205,31 +203,30 @@ field_initializer = identifier, ":", expression ;
 
 argument_list = expression, { ",", expression } ;
 
-
 **ИНСТРУКЦИИ**
 
 program = { statement } ;
 
-statement = 
-      expression_statement
-    | assignment_statement
-    | variable_declaration
-    | function_declaration
-    | struct_declaration
-    | if_statement
-    | while_statement
-    | for_statement
-    | return_statement
-    | block ;
+statement =
+expression_statement
+| assignment_statement
+| variable_declaration
+| function_declaration
+| struct_declaration
+| if_statement
+| while_statement
+| for_statement
+| return_statement
+| block ;
 
 expression_statement = expression, ";" ;
 
 assignment_statement = assignable_expr, "=", expression, ";" ;
 
-assignable_expr = 
-      identifier
-    | member_access_expr
-    | index_access_expr ;
+assignable_expr =
+identifier
+| member_access_expr
+| index_access_expr ;
 
 member_access_expr = (identifier | member_access_expr), ".", identifier ;
 index_access_expr = (identifier | member_access_expr | index_access_expr), "[", expression, "]" ;
