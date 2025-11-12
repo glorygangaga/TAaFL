@@ -177,7 +177,7 @@ postfix_expr = primary_expr, { postfix_operator } ;
 postfix_operator =
 function_call
 | member_access  
- | index_access
+| index_access
 | "++"
 | "--" ;
 
@@ -203,54 +203,29 @@ field_initializer = identifier, ":", expression ;
 
 argument_list = expression, { ",", expression } ;
 
-**ИНСТРУКЦИИ**
+## Особенности выражений
 
-program = { statement } ;
+* Выражение может быть использовано как часть инструкции присваивания.
+* Присваивание **возвращает значение**, поэтому конструкция `x = y = 5` допустима и задаёт `y = 5`, `x = 5`.
+* Поддерживается обращение к членам структуры и индексам массива.
+* операции разрешена только, если оба значения имеют один тип
+---
 
-statement =
-expression_statement
-| assignment_statement
-| variable_declaration
-| function_declaration
-| struct_declaration
-| if_statement
-| while_statement
-| for_statement
-| return_statement
-| block ;
+## Семантические правила
 
-expression_statement = expression, ";" ;
+1. **Типизация:**
+   Операнды арифметических операций должны быть числовыми (`int` или `float`).
+   Сравнения возвращают `bool`.
+   Присваиваемое выражение должно быть совместимо по типу с левой частью.
 
-assignment_statement = assignable_expr, "=", expression, ";" ;
+2. **Присваивание:**
+   Левая часть (`assignable_expr`) должна быть:
 
-assignable_expr =
-identifier
-| member_access_expr
-| index_access_expr ;
+   * переменной (`identifier`)
+   * элементом массива (`arr[i]`)
+   * полем структуры (`obj.field`)
 
-member_access_expr = (identifier | member_access_expr), ".", identifier ;
-index_access_expr = (identifier | member_access_expr | index_access_expr), "[", expression, "]" ;
+   Присваивание возвращает присвоенное значение.
 
-variable_declaration = ( "let" | "const" ), identifier, ":", type, [ "=", expression ], ";" ;
-
-type = "int" | "float" | "str" | "bool" | "void" | identifier | type, "[]" ;
-
-function_declaration = "func", identifier, ":", type, "(", [ parameter_list ], ")", block ;
-
-struct_declaration = "struct", identifier, "{", { field_declaration }, "}" ;
-field_declaration = identifier, ":", type, ";" ;
-
-parameter_list = parameter, { ",", parameter } ;
-parameter = identifier, ":", type ;
-
-if_statement = "if", "(", expression, ")", block, [ "else", ( if_statement | block ) ] ;
-
-while_statement = "while", "(", expression, ")", block ;
-
-for_statement = "for", "(", for_init, ";", [ expression ], ";", [ for_update ], ")", block ;
-for_init = [ variable_declaration | expression_statement ] ;
-for_update = expression ;
-
-return_statement = "return", [ expression ], ";" ;
-
-block = "{", { statement }, "}" ;
+3. **Константы:**
+   `const`-переменные нельзя использовать как левую часть присваивания.
