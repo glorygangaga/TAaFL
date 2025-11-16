@@ -125,7 +125,7 @@ j--;   // постфиксный декремент
 ## 5. Грамматика выражений (в нотации ISO EBNF)
 
 **Основные лексемы**
-literal = number | string;
+literal = number | string | boolean | "null" ;
 number = integer | float ;
 integer = digit, { digit } ;
 float = digit, { digit }, ".", digit, { digit } ;

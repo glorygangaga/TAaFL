@@ -225,8 +225,10 @@ for_statement =
 for_init =
 variable_declaration
 | expression_statement
-| /* пусто */ ;
+| empty  ;
 
 for_update =
 expression
-| /* пусто */ ;
+| empty ;
+
+empty = ;
