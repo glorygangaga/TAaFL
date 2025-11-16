@@ -1,5 +1,3 @@
-- Нужно описать грамматику выражений для своего языка программирования
-
 # Грамматика выражений языка
 
 ## 1. Общие принципы синтаксиса выражений
@@ -162,15 +160,16 @@ arith_expr =
 term_expr, { ("+" | "-"), term_expr } ;
 
 term_expr =
-power_expr, { ("\*" | "/" | "%" | "//"), power_expr } ;
+prefix_expr, { ("\*" | "/" | "%" | "//"), prefix_expr } ;
+
+prefix_expr = 
+{ prefix_operator }, power_expr ;
+
+prefix_operator = 
+"++" | "--" | "+" | "-" | "not" ;
 
 power_expr =
-unary_expr, { "\*\*", unary_expr } ;
-
-unary_expr =
-( "++" | "--" ), unary_expr
-| ( "+" | "-" | "not" ), unary_expr
-| postfix_expr ;
+postfix_expr, { "\*\*", power_expr } ;
 
 postfix_expr = primary_expr, { postfix_operator } ;
 
@@ -219,7 +218,7 @@ argument_list = expression, { ",", expression } ;
    Присваиваемое выражение должно быть совместимо по типу с левой частью.
 
 2. **Присваивание:**
-   Левая часть (`assignable_expr`) должна быть:
+   Левая часть должна быть:
 
    * переменной (`identifier`)
    * элементом массива (`arr[i]`)
