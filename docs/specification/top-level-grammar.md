@@ -1,18 +1,18 @@
-### 1. Пример программы 
+### 1. Пример программы
 
 ```
-struct Point 
+struct Point
 {
     x: int;
     y: int;
 }
 
-func add:int(a:int, b:int) 
+func add:int(a:int, b:int)
 {
     return a + b;
 }
 
-func main:void() 
+func main:void()
 {
     let p:Point = { x:1.0, y:2.0 };
     const msg:str = "Sum: ";
@@ -110,123 +110,123 @@ func main:void()
 ---
 
 
-## 10. EBNF-грамматика 
+## 10. EBNF-грамматика
 
 (* === ПРОГРАММА === *)
 
 program =
-    { top_level_declaration },
-    main_function ;
+{ top_level_declaration },
+main_function ;
 
 (* === ФУНКЦИЯ MAIN === *)
 
 main_function =
-    "func", "main", ":", "void", "(", ")", block ;
+"func", "main", ":", "void", "(", ")", block ;
 
 (* === ВЕРХНЕУРОВНЕВЫЕ ОБЪЯВЛЕНИЯ === *)
 
 top_level_declaration =
-      value_declaration
-    | function_declaration
-    | struct_declaration ;
+value_declaration
+| function_declaration
+| struct_declaration ;
 
 (* === ИНСТРУКЦИИ === *)
 
 statement =
-      expression_statement
-    | assignment_statement 
-    | value_declaration
-    | block
-    | if_statement
-    | while_statement
-    | for_statement
-    | return_statement
-    | empty_statement ;
+expression_statement
+| assignment_statement
+| value_declaration
+| block
+| if_statement
+| while_statement
+| for_statement
+| return_statement
+| empty_statement ;
 
 expression_statement =
-    expression, ";" ;
+expression, ";" ;
 
 assignment_statement =
-    assignable_expr, "=", expression, ";" ;
+assignable_expr, "=", expression, ";" ;
 
 block =
-    "{", { statement }, "}" ;
+"{", { statement }, "}" ;
 
 return_statement =
-    "return", [ expression ], ";" ;
+"return", [ expression ], ";" ;
 
 empty_statement = ";" ;
 
 assignable_expr =
-    primary_assignable, { access_suffix } ;
+primary_assignable, { access_suffix } ;
 
 primary_assignable =
-      identifier
-    | "(", assignable_expr, ")" ;
+identifier
+| "(", assignable_expr, ")" ;
 
 access_suffix =
-      ".", identifier
-    | "[", expression, "]" ;
+".", identifier
+| "[", expression, "]" ;
 
 (* === ОБЪЯВЛЕНИЯ ПЕРЕМЕННЫХ И КОНСТАНТ === *)
 
 value_declaration =
-    variable_declaration
-    | constant_declaration;
+variable_declaration
+| constant_declaration;
 
-variable_declaration = 
-    "let", identifier, ":", type [ "=", expression ], ";";
+variable_declaration =
+"let", identifier, ":", type [ "=", expression ], ";";
 
-constant_declaration = 
-    "const", identifier, ":", type "=", expression, ";";
+constant_declaration =
+"const", identifier, ":", type "=", expression, ";";
 
 (* === ОБЪЯВЛЕНИЯ ФУНКЦИЙ === *)
 
 function_declaration =
-    "func", identifier, ":", type, "(", [ parameter_list ], ")", block ;
+"func", identifier, ":", type, "(", [ parameter_list ], ")", block ;
 
 parameter_list =
-    parameter, { ",", parameter } ;
+parameter, { ",", parameter } ;
 
 parameter =
-    identifier, ":", type ;
+identifier, ":", type ;
 
 (* === ОБЪЯВЛЕНИЯ СТРУКТУР === *)
 
 struct_declaration =
-    "struct", identifier, "{", { field_declaration }, "}" ;
+"struct", identifier, "{", { field_declaration }, "}" ;
 
 field_declaration =
-    identifier, ":", type, ";" ;
+identifier, ":", type, ";" ;
 
 (* === ТИПЫ === *)
 
 type =
-      "int"
-    | "float"
-    | "str"
-    | "bool"
-    | "void"
-    | identifier
-    | type, "[]" ;
+"int"
+| "float"
+| "str"
+| "bool"
+| "void"
+| identifier
+| type, "[]" ;
 
 (* === ОПЕРАТОРЫ УПРАВЛЕНИЯ === *)
 
 if_statement =
-    "if", "(", expression, ")", block,
-    [ "else", ( if_statement | block ) ] ;
+"if", "(", expression, ")", block,
+[ "else", ( if_statement | block ) ] ;
 
 while_statement =
-    "while", "(", expression, ")", block ;
+"while", "(", expression, ")", block ;
 
 for_statement =
-    "for", "(", for_init, [ expression ], ";", [ for_update ], ")", block ;
+"for", "(", for_init, [ expression ], ";", [ for_update ], ")", block ;
 
 for_init =
-      variable_declaration
-    | expression_statement
-    | /* пусто */ ;
+variable_declaration
+| expression_statement
+| /* пусто */ ;
 
 for_update =
-      expression
-    | /* пусто */ ;
+expression
+| /* пусто */ ;

@@ -162,10 +162,10 @@ term_expr, { ("+" | "-"), term_expr } ;
 term_expr =
 prefix_expr, { ("\*" | "/" | "%" | "//"), prefix_expr } ;
 
-prefix_expr = 
+prefix_expr =
 { prefix_operator }, power_expr ;
 
-prefix_operator = 
+prefix_operator =
 "++" | "--" | "+" | "-" | "not" ;
 
 power_expr =
@@ -175,7 +175,7 @@ postfix_expr = primary_expr, { postfix_operator } ;
 
 postfix_operator =
 function_call
-| member_access  
+| member_access
 | index_access
 | "++"
 | "--" ;
@@ -191,7 +191,15 @@ identifier
 | constant
 | array_literal
 | struct_literal
+| input_expr
+| print_expr
 | "(", expression, ")" ;
+
+input_expr =
+"input", "(", [ expression ], ")" ;
+
+print_expr =
+"print", "(", [ expression_list ], ")" ;
 
 array_literal = "[", [ expression_list ], "]" ;
 expression_list = expression, { ",", expression } ;
