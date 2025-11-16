@@ -7,13 +7,12 @@
 
 ---
 
-###SumNumbers
+### SumNumbers
 ```
 func main:void()
 {
     let a:int = input();
     let b:int = input();
-
     let result:int = a + b;
 
     print(result);
@@ -22,7 +21,7 @@ func main:void()
 
 ---
 
-###CircleSquare
+### CircleSquare
 
 ```
 func main:void()
@@ -35,7 +34,7 @@ func main:void()
 
 ---
 
-###QuadraticEquation
+### QuadraticEquation
 
 ```
 func main:void()
