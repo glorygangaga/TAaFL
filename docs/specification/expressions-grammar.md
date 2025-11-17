@@ -126,25 +126,9 @@ j--;   // постфиксный декремент
 
 ## 5. Грамматика выражений (в нотации ISO EBNF)
 
-**Основные лексемы**
 ```
-literal = number | string | boolean | "null" ;
-number = integer | float ;
-integer = digit, { digit } ;
-float = digit, { digit }, ".", digit, { digit } ;
-string = '"', { character - '"' | escape*sequence }, '"' ;
-character = ? любой символ Unicode ? ;
-escape_sequence = "\\", ( "\"" | "\\" | "n" | "t" ) ;
-boolean = "true" | "false" ;
-identifier = (letter | "*"), { letter | digit | "\_" } ;
-constant = "Pi" | "Euler" ;
+(* === ВЫРАЖЕНИЯ === *)
 
-letter = "A" | "B" | ... | "Z" | "a" | "b" | ... | "z" | "\_" ;
-digit = "0" | "1" | ... | "9" ;
-```
-
-**Выражения**
-```
 expression =
 ternary_expr ;
 
@@ -187,10 +171,6 @@ function_call
 | "++"
 | "--" ;
 
-function_call = "(", [ argument_list ], ")" ;
-member_access = ".", identifier ;
-index_access = "[", expression, "]" ;
-
 primary_expr =
 identifier
 | literal
@@ -202,11 +182,24 @@ identifier
 | print_expr
 | "(", expression, ")" ;
 
-input_expr =
-"input", "(", [ expression ], ")" ;
+(* === ПРИСВАИВАЕМЫЕ ВЫРАЖЕНИЯ === *)
 
-print_expr =
-"print", "(", [ expression_list ], ")" ;
+assignable_expr =
+primary_assignable, { access_suffix } ;
+
+primary_assignable =
+identifier
+| "(", assignable_expr, ")" ;
+
+access_suffix =
+".", identifier
+| "[", expression, "]" ;
+
+(* === ВЫЗОВЫ ФУНКЦИЙ И ЛИТЕРАЛЫ === *)
+
+function_call = "(", [ argument_list ], ")" ;
+member_access = ".", identifier ;
+index_access = "[", expression, "]" ;
 
 array_literal = "[", [ expression_list ], "]" ;
 expression_list = expression, { ",", expression } ;
@@ -216,6 +209,15 @@ field_initializer_list = field_initializer, { ",", field_initializer } ;
 field_initializer = identifier, ":", expression ;
 
 argument_list = expression, { ",", expression } ;
+
+(* === ВСТРОЕННЫЕ ФУНКЦИИ === *)
+
+input_expr =
+"input", "(", [ expression ], ")" ;
+
+print_expr =
+"print", "(", [ expression_list ], ")" ;
+
 ```
 
 ## Особенности выражений

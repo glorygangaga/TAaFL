@@ -232,4 +232,20 @@ let x:int = 5; /// Комментарий после кода
    комментарий
 */
 ```
+## 9. Основные лексемы (в нотации ISO EBNF)
 
+```
+literal = number | string | boolean | "null" ;
+number = integer | float ;
+integer = digit, { digit } ;
+float = digit, { digit }, ".", digit, { digit } ;
+string = '"', { character - '"' | escape*sequence }, '"' ;
+character = ? любой символ Unicode ? ;
+escape_sequence = "\\", ( "\"" | "\\" | "n" | "t" ) ;
+boolean = "true" | "false" ;
+identifier = (letter | "*"), { letter | digit | "\_" } ;
+constant = "Pi" | "Euler" ;
+
+letter = "A" | "B" | ... | "Z" | "a" | "b" | ... | "z" | "\_" ;
+digit = "0" | "1" | ... | "9" ;
+```

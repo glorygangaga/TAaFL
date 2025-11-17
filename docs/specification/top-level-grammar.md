@@ -152,23 +152,12 @@ expression, ";" ;
 assignment_statement =
 assignable_expr, "=", expression, ";" ;
 
+empty_statement = ";" ;
+
 block =
 "{", { statement }, "}" ;
 
-empty_statement = ";" ;
-
-assignable_expr =
-primary_assignable, { access_suffix } ;
-
-primary_assignable =
-identifier
-| "(", assignable_expr, ")" ;
-
-access_suffix =
-".", identifier
-| "[", expression, "]" ;
-
-(* === ОБЪЯВЛЕНИЯ ПЕРЕМЕННЫХ И КОНСТАНТ === *)
+(* === ОБЪЯВЛЕНИЯ === *)
 
 value_declaration =
 variable_declaration
@@ -210,7 +199,7 @@ type =
 | identifier
 | type, "[]" ;
 
-(* === ОПЕРАТОРЫ УПРАВЛЕНИЯ === *)
+(* === УПРАВЛЯЮЩИЕ КОНСТРУКЦИИ  === *)
 
 if_statement =
 "if", "(", expression, ")", block, { elif_clause }, [ else_clause ] ;
@@ -230,13 +219,11 @@ for_statement =
 for_init =
 variable_declaration
 | expression_statement
-| empty  ;
+| empty_statement  ;
 
 for_update =
 expression
-| empty ;
-
-empty = ;
+| empty_statement ;
 
 switch_statement =
 "switch", "(", expression, ")", "{", { case_clause }, [ default_clause ],"}" ;

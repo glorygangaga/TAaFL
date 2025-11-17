@@ -39,26 +39,12 @@ expression, ";" ;
 assignment_statement =
 assignable_expr, "=", expression, ";" ;
 
+empty_statement = ";" ;
+
 block =
 "{", { statement }, "}" ;
 
-return_statement =
-"return", [ expression ], ";" ;
-
-empty_statement = ";" ;
-
-assignable_expr =
-primary_assignable, { access_suffix } ;
-
-primary_assignable =
-identifier
-| "(", assignable_expr, ")" ;
-
-access_suffix =
-".", identifier
-| "[", expression, "]" ;
-
-(* === ОБЪЯВЛЕНИЯ ПЕРЕМЕННЫХ И КОНСТАНТ === *)
+(* === ОБЪЯВЛЕНИЯ === *)
 
 value_declaration =
 variable_declaration
@@ -100,7 +86,7 @@ type =
 | identifier
 | type, "[]" ;
 
-(* === ОПЕРАТОРЫ УПРАВЛЕНИЯ === *)
+(* === УПРАВЛЯЮЩИЕ КОНСТРУКЦИИ  === *)
 
 if_statement =
 "if", "(", expression, ")", block, { elif_clause }, [ else_clause ] ;
@@ -120,13 +106,11 @@ for_statement =
 for_init =
 variable_declaration
 | expression_statement
-| empty ;
+| empty_statement ;
 
 for_update =
 expression
-| empty ;
-
-empty = ;
+| empty_statement ;
 
 switch_statement =
 "switch", "(", expression, ")", "{", { case_clause }, [ default_clause ],"}" ;
@@ -143,6 +127,8 @@ continue_statement = "continue", ";" ;
 
 return_statement =
 "return", [ expression ], ";" ;
+
+(* === ВЫРАЖЕНИЯ === *)
 
 expression =
 ternary_expr ;
@@ -186,10 +172,6 @@ function_call
 | "++"
 | "--" ;
 
-function_call = "(", [ argument_list ], ")" ;
-member_access = ".", identifier ;
-index_access = "[", expression, "]" ;
-
 primary_expr =
 identifier
 | literal
@@ -202,11 +184,24 @@ identifier
 | print_expr
 | "(", expression, ")" ;
 
-input_expr =
-"input", "(", [ expression ], ")" ;
+(* === ПРИСВАИВАЕМЫЕ ВЫРАЖЕНИЯ === *)
 
-print_expr =
-"print", "(", [ expression_list ], ")" ;
+assignable_expr =
+primary_assignable, { access_suffix } ;
+
+primary_assignable =
+identifier
+| "(", assignable_expr, ")" ;
+
+access_suffix =
+".", identifier
+| "[", expression, "]" ;
+
+(* === ВЫЗОВЫ ФУНКЦИЙ И ЛИТЕРАЛЫ === *)
+
+function_call = "(", [ argument_list ], ")" ;
+member_access = ".", identifier ;
+index_access = "[", expression, "]" ;
 
 array_literal = "[", [ expression_list ], "]" ;
 expression_list = expression, { ",", expression } ;
@@ -216,6 +211,15 @@ field_initializer_list = field_initializer, { ",", field_initializer } ;
 field_initializer = identifier, ":", expression ;
 
 argument_list = expression, { ",", expression } ;
+
+(* === ВСТРОЕННЫЕ ФУНКЦИИ === *)
+
+input_expr =
+"input", "(", [ expression ], ")" ;
+
+print_expr =
+"print", "(", [ expression_list ], ")" ;
+
 
 (* === Основные лексемы === *)
 
