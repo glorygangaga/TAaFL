@@ -67,7 +67,7 @@ func main:void()
 
 ```
 
-func factorial(n:int)
+func factorial:int(n:int)
 {
     let result:int = 1;
 
@@ -94,7 +94,7 @@ func main:void()
 ### Fibonacci — читает число N и считает N-е число Фибоначчи, используя цикл либо рекурсию
 
 ```
-func fibonacci(n:int)
+func fibonacci:int(n:int)
 {
     if (n <= 1)
     {
@@ -118,6 +118,11 @@ func main:void()
         Программа должна правильно определять количество корней уравнения и выводить сначала количество корней (0, 1 или 2), а затем вычисленные корни
 
 
+func calculate_discriminant:int(a:int, b:int, c:int)
+{
+    return b**2 - 4 * a * c;
+}
+
 func main:void()
 {
     let a:float = input();
@@ -132,7 +137,7 @@ func main:void()
         } 
         else 
         { 
-            print(1, -c / b);
+            print(1, - c / b);
         }
     } 
     else 
