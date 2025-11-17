@@ -71,7 +71,7 @@ func factorial(n:int)
 {
     let result:int = 1;
 
-    for (let i:int = 1; i < n + 1; ++i)
+    for (let i:int = 1; i < n + 1; i++)
     {
         result = result * i;
     }

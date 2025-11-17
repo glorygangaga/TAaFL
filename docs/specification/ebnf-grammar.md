@@ -1,3 +1,4 @@
+```
 (* === ПРОГРАММА === *)
 
 program =
@@ -26,6 +27,9 @@ expression_statement
 | if_statement
 | while_statement
 | for_statement
+| switch_statement
+| break_statement
+| continue_statement
 | return_statement
 | empty_statement ;
 
@@ -99,8 +103,13 @@ type =
 (* === ОПЕРАТОРЫ УПРАВЛЕНИЯ === *)
 
 if_statement =
-"if", "(", expression, ")", block,
-[ "else", ( if_statement | block ) ] ;
+"if", "(", expression, ")", block, { elif_clause }, [ else_clause ] ;
+
+elif_clause = 
+"elif", "(", expression, ")", block ;
+
+else_clause = 
+"else", block ;
 
 while_statement =
 "while", "(", expression, ")", block ;
@@ -119,9 +128,28 @@ expression
 
 empty = ;
 
-expression =
-or_expr ;
+switch_statement =
+"switch", "(", expression, ")", "{", { case_clause }, [ default_clause ],"}" ;
 
+case_clause =
+"case", expression, ":", { statement } ;
+
+default_clause =
+"default", ":", { statement } ;
+
+break_statement = "break", ";" ;
+
+continue_statement = "continue", ";" ;
+
+return_statement =
+"return", [ expression ], ";" ;
+
+expression =
+ternary_expr ;
+
+ternary_expr =
+or_expr, [ "?", expression, ":", ternary_expr ] ;
+    
 or_expr =
 and_expr, { "or", and_expr } ;
 
@@ -204,3 +232,4 @@ constant = "Pi" | "Euler" ;
 
 letter = "A" | "B" | ... | "Z" | "a" | "b" | ... | "z" | "\_" ;
 digit = "0" | "1" | ... | "9" ;
+```

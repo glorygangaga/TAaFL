@@ -111,7 +111,7 @@ func main:void()
 
 
 ## 10. EBNF-грамматика
-
+```
 (* === ПРОГРАММА === *)
 
 program =
@@ -140,6 +140,9 @@ expression_statement
 | if_statement
 | while_statement
 | for_statement
+| switch_statement
+| break_statement
+| continue_statement
 | return_statement
 | empty_statement ;
 
@@ -151,9 +154,6 @@ assignable_expr, "=", expression, ";" ;
 
 block =
 "{", { statement }, "}" ;
-
-return_statement =
-"return", [ expression ], ";" ;
 
 empty_statement = ";" ;
 
@@ -213,8 +213,13 @@ type =
 (* === ОПЕРАТОРЫ УПРАВЛЕНИЯ === *)
 
 if_statement =
-"if", "(", expression, ")", block,
-[ "else", ( if_statement | block ) ] ;
+"if", "(", expression, ")", block, { elif_clause }, [ else_clause ] ;
+
+elif_clause = 
+    "elif", "(", expression, ")", block ;
+
+else_clause = 
+    "else", block ;
 
 while_statement =
 "while", "(", expression, ")", block ;
@@ -232,3 +237,21 @@ expression
 | empty ;
 
 empty = ;
+
+switch_statement =
+"switch", "(", expression, ")", "{", { case_clause }, [ default_clause ],"}" ;
+
+case_clause =
+"case", expression, ":", { statement } ;
+
+default_clause =
+"default", ":", { statement } ;
+
+break_statement = "break", ";" ;
+
+continue_statement = "continue", ";" ;
+
+return_statement =
+"return", [ expression ], ";" ;
+
+```
