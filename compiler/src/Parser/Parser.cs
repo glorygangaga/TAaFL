@@ -22,6 +22,22 @@ public class Parser
   }
 
   /// <summary>
+  /// Парсинг нескольких выражений
+  /// expression_list = expression, { ",", expression } ;.
+  /// </summary>
+  private List<decimal> ParseExpressionList()
+  {
+    List<decimal> values = new List<decimal> { ParseExpr() };
+    while (tokens.Peek().Type == TokenType.Comma)
+    {
+      tokens.Advance();
+      values.Add(ParseExpr());
+    }
+
+    return values;
+  }
+
+  /// <summary>
   /// Выполняет парсинг одного выражения.
   /// expression = or_expr.
   /// </summary>
@@ -150,23 +166,23 @@ public class Parser
 
   /// <summary>
   /// Разбирает один операнд
-  /// term_expr = power_expr, { ("*" | "/" | "%" | "//"), power_expr } ;.
+  /// term_expr = prefix_expr, { ("\*" | "/" | "%" | "//"), prefix_expr } ;.
   /// </summary>
   private decimal ParseTermExpr()
   {
-    decimal value = ParsePowerExpr();
+    decimal value = ParsePrefixExpr();
     while (true)
     {
       switch (tokens.Peek().Type)
       {
         case TokenType.Multiplication:
           tokens.Advance();
-          value *= ParsePowerExpr();
+          value *= ParsePrefixExpr();
           break;
         case TokenType.Division:
           tokens.Advance();
           {
-            decimal divisor = ParsePowerExpr();
+            decimal divisor = ParsePrefixExpr();
             if (divisor == 0)
             {
               throw new DivideByZeroException();
@@ -179,7 +195,7 @@ public class Parser
         case TokenType.Remainder:
           tokens.Advance();
           {
-            decimal divisor = ParsePowerExpr();
+            decimal divisor = ParsePrefixExpr();
             if (divisor == 0)
             {
               throw new DivideByZeroException();
@@ -192,7 +208,7 @@ public class Parser
         case TokenType.IntegerDivision:
           tokens.Advance();
           {
-            decimal divisor = ParsePowerExpr();
+            decimal divisor = ParsePrefixExpr();
             if (divisor == 0)
             {
               throw new DivideByZeroException();
@@ -209,46 +225,48 @@ public class Parser
   }
 
   /// <summary>
-  /// Разбирает одну операцию возведения в степень.
-  /// power_expr = unary_expr, { "**", unary_expr } ;.
+  /// Разбирает один префиксный операнд
+  /// prefix_expr = { prefix_operator }, power_expr ;.
   /// </summary>
-  private decimal ParsePowerExpr()
+  private decimal ParsePrefixExpr()
   {
-    decimal value = ParseUnaryExpr();
-    while (tokens.Peek().Type == TokenType.Exponentiation)
+    switch (tokens.Peek().Type)
     {
-      tokens.Advance();
-      value = (decimal)Math.Pow((double)value, (double)ParseUnaryExpr());
+      case TokenType.Increment:
+        tokens.Advance();
+        return ParsePrefixExpr() + 1;
+      case TokenType.Decrement:
+        tokens.Advance();
+        return ParsePrefixExpr() - 1;
+      case TokenType.Plus:
+        tokens.Advance();
+        return +ParsePrefixExpr();
+      case TokenType.Minus:
+        tokens.Advance();
+        return -ParsePrefixExpr();
+      case TokenType.Not:
+        tokens.Advance();
+        return ParsePrefixExpr() == 0 ? 1 : 0;
+      default:
+        return ParsePowerExpr();
     }
-
-    return value;
   }
 
   /// <summary>
-  /// Разбирает унарную операцию.
-  /// unary_expr = ( "++" | "--" ), unary_expr | ( "+" | "-" | "not" ), unary_expr | postfix_expr ;.
+  /// Разбирает одну операцию возведения в степень.
+  /// power_expr = postfix_expr, { "\*\*", power_expr } ;.
   /// </summary>
-  private decimal ParseUnaryExpr()
+  private decimal ParsePowerExpr()
   {
-    TokenType type = tokens.Peek().Type;
-    if (type == TokenType.Increment || type == TokenType.Decrement ||
-        type == TokenType.Plus || type == TokenType.Minus || type == TokenType.Not)
+    decimal value = ParsePostfixExpr();
+    while (tokens.Peek().Type == TokenType.Exponentiation)
     {
       tokens.Advance();
-      decimal value = ParseUnaryExpr();
-
-      return type switch
-      {
-        TokenType.Increment => ++value,
-        TokenType.Decrement => --value,
-        TokenType.Plus => +value,
-        TokenType.Minus => -value,
-        TokenType.Not => (value == 0) ? 1 : 0,
-        _ => value
-      };
+      decimal right = ParsePowerExpr();
+      value = (decimal)Math.Pow((double)value, (double)right);
     }
 
-    return ParsePostfixExpr();
+    return value;
   }
 
   /// <summary>
@@ -263,7 +281,7 @@ public class Parser
     type == TokenType.DotFieldAccess || type == TokenType.OpenBlockComments)
     {
       decimal oper = ParsePostfixOperator();
-      while (tokens.Peek().Type == TokenType.Increment || tokens.Peek().Type == TokenType.Decrement)
+      if (tokens.Peek().Type == TokenType.Increment || tokens.Peek().Type == TokenType.Decrement)
       {
         tokens.Advance();
 
@@ -290,13 +308,14 @@ public class Parser
     Token t = tokens.Peek();
     switch (t.Type)
     {
-      // case TokenType.Identifier:
-      //   tokens.Advance();
-      //   if (tokens.Peek().Type == TokenType.OpenCurlyBrace)
-      //   {
-      //     return ParseStructLiteral();
-      //   }
-      //   break;
+      case TokenType.Identifier:
+        tokens.Advance();
+
+        // if (tokens.Peek().Type == TokenType.OpenCurlyBrace)
+        // {
+        //   return ParseStructLiteral();
+        // }
+        return 0;
       case TokenType.Min:
       case TokenType.Max:
       case TokenType.Ceil:
@@ -314,9 +333,7 @@ public class Parser
         return ParseBool();
       case TokenType.Pi:
       case TokenType.Euler:
-        decimal constant = ParseConstant();
-        tokens.Advance();
-        return constant;
+        return ParseConstant();
 
       // case TokenType.OpenSquareBracket:
       // return ParseArrayLiteral();
@@ -383,28 +400,14 @@ public class Parser
   }
 
   /// <summary>
-  /// Парсинг нескольких выражений
-  /// expression_list = expression, { ",", expression } ;.
-  /// </summary>
-  private List<decimal> ParseExpressionList()
-  {
-    List<decimal> values = new List<decimal> { ParseExpr() };
-    while (tokens.Peek().Type == TokenType.Comma)
-    {
-      tokens.Advance();
-      values.Add(ParseExpr());
-    }
-
-    return values;
-  }
-
-  /// <summary>
   ///  Парсинг констант
   ///  constant = "Pi" | "Euler".
   /// </summary>
   private decimal ParseConstant()
   {
     Token t = tokens.Peek();
+    tokens.Advance();
+
     return t.Type switch
     {
       TokenType.Euler => 2.71828182846M,
