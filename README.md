@@ -13,10 +13,10 @@
 
 Документация
 
-* [Лексическая структура](docs\specification\lexical-structure.md) - ключевые слова, идентификаторы, литералы
+* [Лексическая структура](docs/specification/lexical-structure.md) - ключевые слова, идентификаторы, литералы
 
-* [Грамматика выражений](docs\specification\expressions-grammar.md) - операторы, приоритеты, вызовы функций
+* [Грамматика выражений](docs/specification/expressions-grammar.md) - операторы, приоритеты, вызовы функций
 
-* [Грамматика верхнего уровня](docs\specification\top-level-grammar.md) - структура программы, инструкции
+* [Грамматика верхнего уровня](docs/specification/top-level-grammar.md) - структура программы, инструкции
 
-* [Примеры программ](docs\specification\examples-program.md) - готовые примеры для изучения
+* [Примеры программ](doc/specification/examples-program.md) - готовые примеры для изучения
