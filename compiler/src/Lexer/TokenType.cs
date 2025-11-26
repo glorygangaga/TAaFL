@@ -268,6 +268,11 @@ public enum TokenType
   Semicolon,
 
   /// <summary>
+  /// Вопросит. знак для тернарного оператора '?'
+  /// </summary>
+  QuestionMark,
+
+  /// <summary>
   /// Строка '"'
   /// </summary>
   DoubleQuote,

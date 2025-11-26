@@ -2,7 +2,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Lexer\Lexer.csproj" />
-    <ProjectReference Include="..\Execution\Execution.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

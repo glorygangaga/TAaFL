@@ -1,13 +1,13 @@
-using Lexer;
-
 namespace Parser;
 
-#pragma warning disable RCS1194 // Implement exception constructors
+using Lexer;
+
+#pragma warning disable RCS1194
 public class UnexpectedLexemeException : Exception
-#pragma warning restore RCS1194 // Implement exception constructors
 {
   public UnexpectedLexemeException(TokenType expected, Token actual)
-        : base($"Unexpected lexeme {actual} where expected {expected}")
+      : base($"Unexpected lexeme {actual} where expected {expected}")
   {
   }
 }
+#pragma warning restore RCS1194
