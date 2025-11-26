@@ -137,6 +137,8 @@ expression_statement
 | assignment_statement
 | value_declaration
 | block
+| input_statement
+| print_statement
 | if_statement
 | while_statement
 | for_statement
@@ -156,6 +158,12 @@ empty_statement = ";" ;
 
 block =
 "{", { statement }, "}" ;
+
+input_statement =
+"input", "(", [ expression ], ")" ";" ;
+
+print_statement =
+"print", "(", [ expression_list ], ")" ";" ;
 
 (* === ОБЪЯВЛЕНИЯ === *)
 
