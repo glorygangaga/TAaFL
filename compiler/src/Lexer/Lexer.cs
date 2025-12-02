@@ -91,12 +91,6 @@ public class Lexer(string text)
   {
     string value = "";
 
-    // if (scanner.Peek() == '-')
-    // {
-    //   value += scanner.Peek();
-    //   scanner.Advance();
-    // }
-
     while (char.IsAsciiDigit(scanner.Peek()))
     {
       value += scanner.Peek();
@@ -206,6 +200,8 @@ public class Lexer(string text)
         return new Token(TokenType.OpenSquareBracket);
       case ']':
         return new Token(TokenType.CloseSquareBracket);
+      case '?':
+        return new Token(TokenType.QuestionMark);
       case '>':
         if (scanner.Peek() == '=')
         {

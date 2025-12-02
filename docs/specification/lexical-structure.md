@@ -1,18 +1,21 @@
-# Лексическая структура языка 
+# Лексическая структура языка NovaLang 
 
 ## 1. Примеры кода
 
 ```
-struct Point {
+struct Point 
+{
     x: int;
     y: int;
 }
 
-func add:int(a:int, b:int) {
+func add:int(a:int, b:int)
+{
     return a + b;
 }
 
-func main:void() {
+func main:void()
+{
     let p:Point = { x:1.0, y:2.0 };
     const msg:str = "Sum: ";
     let result:int = add(3, 5);
@@ -24,7 +27,7 @@ func main:void() {
 
 ## 2. Ключевые слова 
 
- Ключевые слова **регистрозависимые**
+ Ключевые слова **регистронезависимые**
 
 | Слово      | Предназначение                   | Категория  |
 | ---------- | -------------------------------- | ---------- |

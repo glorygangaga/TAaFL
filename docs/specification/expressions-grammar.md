@@ -178,8 +178,6 @@ identifier
 | constant
 | array_literal
 | struct_literal
-| input_expr
-| print_expr
 | "(", expression, ")" ;
 
 (* === ПРИСВАИВАЕМЫЕ ВЫРАЖЕНИЯ === *)
@@ -209,20 +207,6 @@ field_initializer_list = field_initializer, { ",", field_initializer } ;
 field_initializer = identifier, ":", expression ;
 
 argument_list = expression, { ",", expression } ;
-
-(* === ВСТРОЕННЫЕ ФУНКЦИИ === 
-
-Данные инструкции можно даже опустить и сделать через токены, как с другими встроенными функциями: max(), min(), abs() и т.д.
-
-В Python input и print описаны через встроенные функции(function_call как в нашем ЯП), благодарю чему могут быть как выражениями, так и инструкциями в зависимости от контекста
-
-*)
-
-input_expr =
-"input", "(", [ expression ], ")" ;
-
-print_expr =
-"print", "(", [ expression_list ], ")" ;
 
 ```
 

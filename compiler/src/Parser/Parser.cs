@@ -1,4 +1,6 @@
-﻿using Lexer;
+﻿using Execution;
+
+using Lexer;
 
 namespace Parser;
 
@@ -6,19 +8,139 @@ namespace Parser;
 /// Выполняет синтаксический разбор.
 /// Грамматика языка описана в файле `docs/specification/expressions-grammar.md`.
 /// </summary>
-public class Parser
+public class Parser(Context context, IEnvironment environmentParser, string code)
 {
-  private readonly TokenStream tokens;
+  private readonly TokenStream tokens = new TokenStream(code);
+  private readonly Context context = context;
+  private readonly IEnvironment environment = environmentParser;
 
-  private Parser(string code)
+  public void ParseProgram()
   {
-    tokens = new TokenStream(code);
+    context.PushScope(new Scope());
+    do
+    {
+      Token t = tokens.Peek();
+
+      switch (t.Type)
+      {
+        case TokenType.Const:
+        case TokenType.Let:
+          ParseValueDeclaration();
+          break;
+        case TokenType.Print:
+          ParsePrintExpr();
+          break;
+        default:
+          if (t.Type == TokenType.Identifier)
+          {
+            string name = t.Value!.ToString();
+            tokens.Advance();
+            if (tokens.Peek().Type == TokenType.Assignment)
+            {
+              ParseAssignableExpr(name);
+            }
+            else
+            {
+              decimal value = ParseExpr();
+              Match(TokenType.Semicolon);
+              environment.WriteNumber(value);
+            }
+
+            break;
+          }
+          else
+          {
+            decimal value = ParseExpr();
+            Match(TokenType.Semicolon);
+            environment.WriteNumber(value);
+
+            break;
+          }
+      }
+    }
+    while (tokens.Peek().Type != TokenType.EndOfFile);
   }
 
-  public static List<decimal> ExecuteExpr(string expr)
+  /// <summary>
+  /// Парсинг переменных
+  /// value_declaration = variable_declaration | constant_declaration;.
+  /// </summary>
+  private void ParseValueDeclaration()
   {
-    Parser p = new(expr);
-    return p.ParseExpressionList();
+    switch (tokens.Peek().Type)
+    {
+      case TokenType.Const:
+        ParseConstantDeclaration();
+        break;
+      case TokenType.Let:
+        ParseVariableDeclaration();
+        break;
+    }
+  }
+
+  /// <summary>
+  /// Парсинг let
+  /// variable_declaration = "let", identifier, ":", type [ "=", expression ], ";";.
+  /// </summary>
+  private void ParseVariableDeclaration()
+  {
+    tokens.Advance();
+    string name = tokens.Peek().Value!.ToString();
+    tokens.Advance();
+    Match(TokenType.ColonTypeIndication);
+
+    // TokenType type = tokens.Peek().Type;
+    tokens.Advance();
+
+    decimal value = 0;
+
+    if (tokens.Peek().Type == TokenType.Assignment)
+    {
+      tokens.Advance();
+      value = ParseExpr();
+    }
+
+    Match(TokenType.Semicolon);
+
+    context.DefineVariable(name, value);
+  }
+
+  /// <summary>
+  /// Parsing AssignableExpr
+  /// assignable_expr, "=", expression, ";" ;.
+  /// </summary>
+  private void ParseAssignableExpr(string name)
+  {
+    tokens.Advance();
+    decimal value = ParseExpr();
+    Match(TokenType.Semicolon);
+    context.AssignVariable(name, value);
+  }
+
+  /// <summary>
+  /// constant_declaration = "const", identifier, ":", type "=", expression, ";";.
+  /// </summary>
+  private void ParseConstantDeclaration()
+  {
+    tokens.Advance();
+    Token t = tokens.Peek();
+
+    if (t.Type != TokenType.Identifier || t.Value == null)
+    {
+      throw new UnexpectedLexemeException(TokenType.Identifier, t);
+    }
+
+    string name = tokens.Peek().Value!.ToString();
+    tokens.Advance();
+    Match(TokenType.ColonTypeIndication);
+
+    // TokenType type = tokens.Peek().Type;
+    tokens.Advance();
+    Match(TokenType.Assignment);
+    decimal value = ParseExpr();
+    Match(TokenType.Semicolon);
+
+    context.DefineConstant(name, value);
   }
 
   /// <summary>
@@ -43,7 +165,26 @@ public class Parser
   /// </summary>
   private decimal ParseExpr()
   {
-    return ParseOrExpr();
+    return ParseTernaryExpr();
+  }
+
+  /// <summary>
+  /// Выполняет парсинг тернарного оператора
+  /// ternary_expr = or_expr, [ "?", expression, ":", ternary_expr ] ;.
+  /// </summary>
+  private decimal ParseTernaryExpr()
+  {
+    decimal value = ParseOrExpr();
+    if (tokens.Peek().Type == TokenType.QuestionMark)
+    {
+      tokens.Advance();
+      decimal trueValue = ParseExpr();
+      Match(TokenType.ColonTypeIndication);
+      decimal falseValue = ParseTernaryExpr();
+      return value != 0 ? trueValue : falseValue;
+    }
+
+    return value;
   }
 
   /// <summary>
@@ -276,32 +417,33 @@ public class Parser
   private decimal ParsePostfixExpr()
   {
     decimal value = ParsePrimaryExpr();
-    TokenType type = tokens.Peek().Type;
-    if (type == TokenType.Increment || type == TokenType.Decrement || type == TokenType.OpenParenthesis ||
-    type == TokenType.DotFieldAccess || type == TokenType.OpenBlockComments)
-    {
-      decimal oper = ParsePostfixOperator();
-      if (tokens.Peek().Type == TokenType.Increment || tokens.Peek().Type == TokenType.Decrement)
-      {
-        tokens.Advance();
 
-        if (oper == 1)
-        {
+    while (true)
+    {
+      switch (tokens.Peek().Type)
+      {
+        case TokenType.Increment:
+          tokens.Advance();
           value++;
-        }
-        else if (oper == -1)
-        {
+          continue;
+        case TokenType.Decrement:
+          tokens.Advance();
           value--;
-        }
+          continue;
+        case TokenType.OpenParenthesis:
+        case TokenType.DotFieldAccess:
+        case TokenType.OpenBlockComments:
+          value = ParsePostfixOperator();
+          continue;
+
+        default: return value;
       }
     }
-
-    return value;
   }
 
   /// <summary>
   /// парсинг основного выражения
-  /// primary_expr = identifier | literal | boolean | constant | array_literal | struct_literal | "(", expression, ")" ;.
+  /// primary_expr = identifier | literal | boolean | constant | array_literal | struct_literal | input_expr | print_expr | "(", expression, ")" ;.
   /// </summary>
   private decimal ParsePrimaryExpr()
   {
@@ -309,13 +451,15 @@ public class Parser
     switch (t.Type)
     {
       case TokenType.Identifier:
+        string name = t.Value!.ToString();
         tokens.Advance();
 
         // if (tokens.Peek().Type == TokenType.OpenCurlyBrace)
         // {
         //   return ParseStructLiteral();
         // }
-        return 0;
+        return context.GetValue(name);
+
       case TokenType.Min:
       case TokenType.Max:
       case TokenType.Ceil:
@@ -343,8 +487,41 @@ public class Parser
         decimal value = ParseExpr();
         Match(TokenType.CloseParenthesis);
         return value;
+
+      case TokenType.Input:
+        tokens.Advance();
+        return ParseInput();
       default:
         throw new UnexpectedLexemeException(t.Type, t);
+    }
+  }
+
+  /// <summary>
+  /// Парсинг инпута
+  /// input_expr = "input", "(", [ expression ], ")" ;.
+  /// </summary>
+  private decimal ParseInput()
+  {
+    Match(TokenType.OpenParenthesis);
+    Match(TokenType.CloseParenthesis);
+
+    return environment.ReadNumber();
+  }
+
+  /// <summary>
+  /// Парсинг вывода
+  /// print_expr = "print", "(", [expression_list], ")" ;.
+  /// </summary>
+  private void ParsePrintExpr()
+  {
+    tokens.Advance();
+    Match(TokenType.OpenParenthesis);
+    List<decimal> values = ParseExpressionList();
+    Match(TokenType.CloseParenthesis);
+    Match(TokenType.Semicolon);
+    for (int i = 0; i < values.Count; i++)
+    {
+      environment.WriteNumber(values[i]);
     }
   }
 
@@ -466,8 +643,6 @@ public class Parser
       TokenType.OpenParenthesis => ParseFunctionCall(),
       TokenType.DotFieldAccess => ParseMemerAccess(),
       TokenType.OpenSquareBracket => ParseIndexAccess(),
-      TokenType.Increment => 1,
-      TokenType.Decrement => -1,
       _ => throw new UnexpectedLexemeException(t.Type, t),
     };
   }
@@ -483,6 +658,7 @@ public class Parser
     Match(TokenType.OpenParenthesis);
     List<decimal> args = ParseExpressionList();
     Match(TokenType.CloseParenthesis);
+
     return BuiltinFunctions.Instance.Invoke(nameToken.Type, args);
   }
 
