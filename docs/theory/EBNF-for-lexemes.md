@@ -35,7 +35,7 @@ binary_digit = "0" | "1" ;
 octal_integer = "0", ( "o" | "O" ), ( [ "_" ], octal_digit ), { [ underscore ], octal_digit } ;
 octal_digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" ;
 
-hex_integer = "0x" , ( "x" | "X" ), ( [ "_" ], hex_digit ), { [ "_" ], hex_digit } ;
+hex_integer = "0" , ( "x" | "X" ), ( [ "_" ], hex_digit ), { [ "_" ], hex_digit } ;
 hex_digit = digit | "a" | "b" | "c" | "d" | "e" | "f" | "A" | "B" | "C" | "D" | "E" | "F" ;
 
 zero_integer:  "0" | { [ "_" ] | "0" } ;
@@ -45,9 +45,9 @@ __Литералы чисел с плавающей точкой (real number)__
 ```ebnf
 float_number = point_float_with_exponent | ;
 
-point_float_with_exponent = digit_part, ".", [ digit_part ], [ exponent ] ;
-point_float_without_exponent = ".", [ digit_part ], [ exponent ] ;
-exponent_float = digit_part, exponent ;
+point_float_with_exponent = digit_part, ".", [ digit_part ], [ exponent_float ] ;
+point_float_without_exponent = ".", [ digit_part ], [ exponent_float ] ;
+point_float_exponent_float = digit_part, exponent_float ;
 
 digit_part = digit, { [ "_" ], digit } ;
 exponent_float = ("e" | "E"), ["+" | "-"], digit_part ;
@@ -60,11 +60,10 @@ string = [ string_prefix ], string_content ;
 
 string_prefix = "r" | "u" | "b" | "br" | "rb" | "R" | "U" | "B" | "BR" | "RB" ;
 
-string_content =
-"'''", ( !"'''", longstringitem ), { !"'''", longstringitem }, "'''"
-| "'"'", ( !"'"'", longstringitem ), { !"'"'", longstringitem }, "'"'"
-| "'", ( !"'", stringitem ), { !"'", stringitem }, "'"
-| '"', ( !'"', stringitem ), { !'"', stringitem }, '"';
+string_content = "'''", { long_string_item }, "'''" (* тройная одинарная кавычка, допускает переносы *)
+    | '"""', { long_string_item }, '"""' (* тройная двойная кавычка, допускает переносы *)
+    | "'", { string_item }, "'" (* обычная одинарная кавычка *)
+    | '"', { string_item }, '"' ; (* обычная двойная кавычка *)
 
 string_item = letter | string_escape_seq ;
 
