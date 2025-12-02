@@ -1,0 +1,74 @@
+# EBNF грамматика лексики языка Python
+
+> Источник https://docs.python.org/3/reference/lexical_analysis.html
+
+<hr>
+
+__Идентификатор (identifier)__  
+```ebnf
+identifier = identifier_start, { identifier_continue } ;
+
+identifier_start = letter | underscore ;
+
+identifier_continue = identifier_start | digit ;
+```
+
+__Цифры и символы (letters and digit)__
+```ebnf
+letter = unicode_letter ;
+underscore = "_" ; 
+digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+```
+
+
+
+__Литералы целых чисел (integer number)__  
+```ebnf
+integer = decimal_integer | binary_integer | octal_integer | hex_integer | zero_integer ;
+
+decimal_integer = non_zero_digit, { [ underscore ] | digit } ;
+non_zero_digit = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+
+binary_integer = "0", ( "b" | "B" ), ( [ underscore ], binary_digit ), { [ underscore ], binary_digit } ;
+binary_digit = "0" | "1" ;
+
+octal_integer = "0", ( "o" | "O" ), ( [ "_" ], octal_digit ), { [ underscore ], octal_digit } ;
+octal_digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" ;
+
+hex_integer = "0x" , ( "x" | "X" ), ( [ "_" ], hex_digit ), { [ "_" ], hex_digit } ;
+hex_digit = digit | "a" | "b" | "c" | "d" | "e" | "f" | "A" | "B" | "C" | "D" | "E" | "F" ;
+
+zero_integer:  "0" | { [ "_" ] | "0" } ;
+```
+
+__Литералы чисел с плавающей точкой (real number)__
+```ebnf
+float_number = point_float_with_exponent | ;
+
+point_float_with_exponent = digit_part, ".", [ digit_part ], [ exponent ] ;
+point_float_without_exponent = ".", [ digit_part ], [ exponent ] ;
+exponent_float = digit_part, exponent ;
+
+digit_part = digit, { [ "_" ], digit } ;
+exponent_float = ("e" | "E"), ["+" | "-"], digit_part ;
+```
+
+
+__Литералы строк (string literal)__
+```ebnf
+string = [ string_prefix ], string_content ;
+
+string_prefix = "r" | "u" | "b" | "br" | "rb" | "R" | "U" | "B" | "BR" | "RB" ;
+
+string_content =
+"'''", ( !"'''", longstringitem ), { !"'''", longstringitem }, "'''"
+| "'"'", ( !"'"'", longstringitem ), { !"'"'", longstringitem }, "'"'"
+| "'", ( !"'", stringitem ), { !"'", stringitem }, "'"
+| '"', ( !'"', stringitem ), { !'"', stringitem }, '"';
+
+string_item = letter | string_escape_seq ;
+
+long_string_item = string_item | new_line ;
+
+string_escape_seq = "\" , string_item ;
+```
