@@ -10,14 +10,12 @@
 | FizzBuzz          | определяет кратность чисел в цикле                   | число N          | результат кратности                   | проверка всех типо данных, кроме float                  |
 | ToLower           | переводит строку в нижний регистр                    | строка           | строка в нижнем регистре              |                                                         |
 
-
-
 ---
 
 # Примеры программ для lw4
 
 ### SumNumbers
-```nova
+```cpy
 func main:void()
 {
     let a:int = input();
@@ -32,7 +30,7 @@ func main:void()
 
 ### CircleSquare
 
-```nova
+```cpy
 func main:void()
 {
     let radius:float = input();
@@ -45,7 +43,7 @@ func main:void()
 
 ### QuadraticEquation
 
-```nova
+```cpy
 func main:void()
 {
     let a:int = input();
@@ -67,7 +65,7 @@ func main:void()
 
 ### Factorial — читает число N и считает его факториал N!, используя цикл 
 
-```nova
+```cpy
 func factorial:int(n:int)
 {
     let result:int = 1;
@@ -94,7 +92,7 @@ func main:void()
 
 ### Fibonacci — читает число N и считает N-е число Фибоначчи, используя рекурсию
 
-```nova
+```cpy
 func fibonacci:int(n:int)
 {
     if (n <= 1)
@@ -118,7 +116,7 @@ func main:void()
 Программа должна читать три числа: коэффициенты квадратного уравнения
 Программа должна правильно определять количество корней уравнения и выводить сначала количество корней (0, 1 или 2), а затем вычисленные корни
 
-```nova
+```cpy
 func calculate_discriminant:int(a:int, b:int, c:int)
 {
     return b**2 - 4 * a * c;
@@ -178,7 +176,7 @@ func main:void()
 “FizzBuzz”, если число делится и на 3, и на 5
 Само число в остальных случаях
 
-```nova
+```cpy
 func fizzBuzz:str(n:int)
 {
     let divisibleBy3:bool = (i % 3 == 0);
@@ -219,7 +217,7 @@ func main:void()
 
 ### Пример 2: CheckPalindrome (str, bool)
 
-```nova
+```cpy
 func toLowerExample:void()
 {
     print("Введите строку: ");
