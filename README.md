@@ -17,6 +17,8 @@
 
 * [Грамматика выражений](docs/specification/expressions-grammar.md) - операторы, приоритеты, вызовы функций
 
+* [Грамматика типов данных](docs\specification\types.md) - типы данных
+
 * [Грамматика верхнего уровня](docs/specification/top-level-grammar.md) - структура программы, инструкции
 
 * [Примеры программ](doc/specification/examples-program.md) - готовые примеры для изучения
