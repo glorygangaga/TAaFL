@@ -1,3 +1,5 @@
+using Ast.Declarations;
+
 namespace Execution;
 
 /// <summary>
@@ -5,8 +7,18 @@ namespace Execution;
 /// </summary>
 public class Context
 {
+  private readonly IEnvironment environment;
   private readonly Stack<Scope> scopes = [];
   private readonly Dictionary<string, decimal> constants = [];
+  private readonly Dictionary<string, FunctionDeclaration> functions = [];
+
+  public Context(IEnvironment environment)
+  {
+    this.environment = environment;
+    scopes.Push(new Scope());
+  }
+
+  public IEnvironment Environment => environment;
 
   public void PushScope(Scope scope)
   {
@@ -74,6 +86,24 @@ public class Context
     if (!constants.TryAdd(name, value))
     {
       throw new ArgumentException($"Constant '{name}' is already defined");
+    }
+  }
+
+  public FunctionDeclaration GetFunction(string name)
+  {
+    if (functions.TryGetValue(name, out FunctionDeclaration? function))
+    {
+      return function;
+    }
+
+    throw new ArgumentException($"Function '{name}' is not defined");
+  }
+
+  public void DefineFunction(FunctionDeclaration function)
+  {
+    if (!functions.TryAdd(function.Name, function))
+    {
+      throw new ArgumentException($"Function '{function.Name}' is already defined");
     }
   }
 }

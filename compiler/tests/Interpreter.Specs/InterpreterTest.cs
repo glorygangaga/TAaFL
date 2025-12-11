@@ -15,8 +15,8 @@ public class InterpreterTest
     List<decimal> input = tuple.Item1;
     List<decimal> expected = tuple.Item2;
 
-    Context context = new Context();
     FakeEnvironment environment = new FakeEnvironment();
+    Context context = new Context(environment);
 
     for (int i = input.Count - 1; i >= 0; i--)
     {

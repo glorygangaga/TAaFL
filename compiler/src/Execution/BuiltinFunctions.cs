@@ -1,25 +1,25 @@
 using Lexer;
 
-namespace Parser;
+namespace Execution;
 
 public class BuiltinFunctions
 {
-  private readonly Dictionary<TokenType, Func<List<decimal>, decimal>> functions = new()
+  private readonly Dictionary<string, Func<List<decimal>, decimal>> functions = new()
   {
-    { TokenType.Abs, Abs },
-    { TokenType.Min, Min },
-    { TokenType.Max, Max },
-    { TokenType.Pow, Pow },
-    { TokenType.Round, Round },
-    { TokenType.Ceil, Ceil },
-    { TokenType.Floor, Floor },
+    { "abs", Abs },
+    { "min", Min },
+    { "max", Max },
+    { "pow", Pow },
+    { "round", Round },
+    { "ceil", Ceil },
+    { "floor", Floor },
   };
 
   private static readonly BuiltinFunctions InstanceValue = new();
 
   public static BuiltinFunctions Instance => InstanceValue;
 
-  public decimal Invoke(TokenType token, List<decimal> arguments)
+  public decimal Invoke(string token, List<decimal> arguments)
   {
     if (!functions.TryGetValue(token, out Func<List<decimal>, decimal>? function))
     {
@@ -27,6 +27,11 @@ public class BuiltinFunctions
     }
 
     return function(arguments);
+  }
+
+  public bool IsBuiltin(string token)
+  {
+    return functions.ContainsKey(token);
   }
 
   private static decimal Min(List<decimal> arguments)
