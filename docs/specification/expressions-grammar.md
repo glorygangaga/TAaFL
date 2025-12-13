@@ -75,14 +75,13 @@ j--;   // постфиксный декремент
 
 ### Прочие операторы
 
-| Символ | Описание                            |
-| :----- | :---------------------------------- |
-| `.`    | доступ к полю структуры или объекта |
-| `()`   | вызов функции или группировка       |
-| `[]`   | индексирование массива              |
-| `=`    | присваивание                        |
-| `:`    | указание типа (в объявлениях)       |
-| `? :`  | тернарный оператор                  |
+| Символ | Описание                      |
+| :----- | :---------------------------- |
+| `()`   | вызов функции или группировка |
+| `[]`   | индексирование массива        |
+| `=`    | присваивание                  |
+| `:`    | указание типа (в объявлениях) |
+| `? :`  | тернарный оператор            |
 
 ---
 
@@ -90,7 +89,7 @@ j--;   // постфиксный декремент
 
 | Приоритет (высокий → низкий) | Операторы                 | Ассоциативность |
 | :--------------------------- | :------------------------ | :-------------- |
-| 1                            | `()` `[]` `.`             | слева           |
+| 1                            | `()` `[]`                 | слева           |
 | 2                            | постфиксные `++`, `--`    | слева           |
 | 3                            | префиксные `++`, `--`     | справа          |
 | 4                            | `**`                      | справа          |
@@ -166,7 +165,6 @@ postfix_expr = primary_expr, { postfix_operator } ;
 
 postfix_operator =
 function_call
-| member_access
 | index_access
 | "++"
 | "--" ;
@@ -176,35 +174,20 @@ identifier
 | literal
 | boolean
 | constant
-| array_literal
-| struct_literal
 | "(", expression, ")" ;
 
 (* === ПРИСВАИВАЕМЫЕ ВЫРАЖЕНИЯ === *)
 
 assignable_expr =
-primary_assignable, { access_suffix } ;
-
-primary_assignable =
 identifier
 | "(", assignable_expr, ")" ;
-
-access_suffix =
-".", identifier
-| "[", expression, "]" ;
 
 (* === ВЫЗОВЫ ФУНКЦИЙ И ЛИТЕРАЛЫ === *)
 
 function_call = "(", [ argument_list ], ")" ;
-member_access = ".", identifier ;
 index_access = "[", expression, "]" ;
 
-array_literal = "[", [ expression_list ], "]" ;
 expression_list = expression, { ",", expression } ;
-
-struct_literal = identifier, "{", [ field_initializer_list ], "}" ;
-field_initializer_list = field_initializer, { ",", field_initializer } ;
-field_initializer = identifier, ":", expression ;
 
 argument_list = expression, { ",", expression } ;
 
@@ -214,7 +197,6 @@ argument_list = expression, { ",", expression } ;
 
 * Выражение может быть использовано как часть инструкции присваивания.
 * Присваивание **возвращает значение**, поэтому конструкция `x = y = 5` допустима и задаёт `y = 5`, `x = 5`.
-* Поддерживается обращение к членам структуры и индексам массива.
 * операции разрешена только, если оба значения имеют один тип
 ---
 
@@ -229,8 +211,6 @@ argument_list = expression, { ",", expression } ;
    Левая часть должна быть:
 
    * переменной (`identifier`)
-   * элементом массива (`arr[i]`)
-   * полем структуры (`obj.field`)
 
    Присваивание возвращает присвоенное значение.
 

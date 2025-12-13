@@ -14,8 +14,7 @@ main_function =
 
 top_level_declaration =
 value_declaration
-| function_declaration
-| struct_declaration ;
+| function_declaration;
 
 (* === ИНСТРУКЦИИ === *)
 
@@ -75,14 +74,6 @@ parameter, { ",", parameter } ;
 parameter =
 identifier, ":", type ;
 
-(* === ОБЪЯВЛЕНИЯ СТРУКТУР === *)
-
-struct_declaration =
-"struct", identifier, "{", { field_declaration }, "}" ;
-
-field_declaration =
-identifier, ":", type, ";" ;
-
 (* === ТИПЫ === *)
 
 type =
@@ -91,8 +82,7 @@ type =
 | "str"
 | "bool"
 | "void"
-| identifier
-| type, "[]" ;
+| identifier;
 
 (* === УПРАВЛЯЮЩИЕ КОНСТРУКЦИИ  === *)
 
@@ -175,7 +165,6 @@ postfix_expr = primary_expr, { postfix_operator } ;
 
 postfix_operator =
 function_call
-| member_access
 | index_access
 | "++"
 | "--" ;
@@ -186,35 +175,21 @@ identifier
 | boolean
 | constant
 | "null"
-| array_literal
-| struct_literal
 | "(", expression, ")" ;
 
 (* === ПРИСВАИВАЕМЫЕ ВЫРАЖЕНИЯ === *)
 
 assignable_expr =
-primary_assignable, { access_suffix } ;
-
-primary_assignable =
 identifier
 | "(", assignable_expr, ")" ;
 
-access_suffix =
-".", identifier
-| "[", expression, "]" ;
 
 (* === ВЫЗОВЫ ФУНКЦИЙ И ЛИТЕРАЛЫ === *)
 
 function_call = "(", [ argument_list ], ")" ;
-member_access = ".", identifier ;
 index_access = "[", expression, "]" ;
 
-array_literal = "[", [ expression_list ], "]" ;
 expression_list = expression, { ",", expression } ;
-
-struct_literal = identifier, "{", [ field_initializer_list ], "}" ;
-field_initializer_list = field_initializer, { ",", field_initializer } ;
-field_initializer = identifier, ":", expression ;
 
 argument_list = expression, { ",", expression } ;
 
