@@ -1,11 +1,7 @@
 ### 1. Пример программы
 
 ```cpy
-struct Point
-{
-    x: int;
-    y: int;
-}
+
 
 func add:int(a:int, b:int)
 {
@@ -14,7 +10,6 @@ func add:int(a:int, b:int)
 
 func main:void()
 {
-    let p:Point = { x:1.0, y:2.0 };
     const msg:str = "Sum: ";
     let result:int = add(3, 5);
     print(msg, result);
@@ -127,8 +122,7 @@ main_function =
 
 top_level_declaration =
 value_declaration
-| function_declaration
-| struct_declaration ;
+| function_declaration;
 
 (* === ИНСТРУКЦИИ === *)
 
@@ -188,14 +182,6 @@ parameter, { ",", parameter } ;
 parameter =
 identifier, ":", type ;
 
-(* === ОБЪЯВЛЕНИЯ СТРУКТУР === *)
-
-struct_declaration =
-"struct", identifier, "{", { field_declaration }, "}" ;
-
-field_declaration =
-identifier, ":", type, ";" ;
-
 (* === ТИПЫ === *)
 
 type =
@@ -204,8 +190,7 @@ type =
 | "str"
 | "bool"
 | "void"
-| identifier
-| type, "[]" ;
+| identifier;
 
 (* === УПРАВЛЯЮЩИЕ КОНСТРУКЦИИ  === *)
 
@@ -288,17 +273,12 @@ return_statement =
 - Переменная в инициализации for видна только в теле цикла
 - Пустое условие в for эквивалентно true
 
-### 11.6. Структуры
-- Поля структуры должны иметь уникальные имена
-- При создании структуры должны быть инициализированы все обязательные поля
-- Доступ к полям возможен только через оператор `.`
-
-### 11.7. Константы и переменные
+### 11.6. Константы и переменные
 - Константы должны быть инициализированы при объявлении
 - Константы не могут быть изменены после инициализации
 - Переменные должны быть инициализированы перед использованием
 
-### 11.8. Порядок вычислений
+### 11.7. Порядок вычислений
 - Аргументы функций вычисляются слева направо
 - Логические операторы используют short-circuit evaluation
 - Порядок вычисления арифметических операндов не гарантируется
