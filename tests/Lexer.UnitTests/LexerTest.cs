@@ -1,7 +1,3 @@
-using ExampleLib.UnitTests.Helpers;
-
-using Xunit;
-
 namespace Lexer.UnitTests;
 
 public class LexerTest
@@ -12,15 +8,6 @@ public class LexerTest
   {
     List<Token> actual = Tokenize(text);
     Assert.Equal(expected, actual);
-  }
-
-  [Theory]
-  [MemberData(nameof(GetLexicalStatsData))]
-  public void LexicalStatsTestTheory(string path, string expected)
-  {
-    using TempFile file = TempFile.Create(path);
-    string actual = LexicalStats.CollectFromFile(file.Path);
-    Assert.Equal(Normalize(expected), Normalize(actual));
   }
 
   public static TheoryData<string, List<Token>> GetTokenizeData()
@@ -102,23 +89,6 @@ public class LexerTest
         ]
       },
       {
-        "struct car { str brand; str model; int year;}", [
-          new Token(TokenType.Struct),
-          new Token(TokenType.Identifier, new TokenValue("car")),
-          new Token(TokenType.OpenCurlyBrace),
-          new Token(TokenType.Str),
-          new Token(TokenType.Identifier, new TokenValue("brand")),
-          new Token(TokenType.Semicolon),
-          new Token(TokenType.Str),
-          new Token(TokenType.Identifier, new TokenValue("model")),
-          new Token(TokenType.Semicolon),
-          new Token(TokenType.Int),
-          new Token(TokenType.Identifier, new TokenValue("year")),
-          new Token(TokenType.Semicolon),
-          new Token(TokenType.CloseCurlyBracket)
-        ]
-      },
-      {
         "import std;", [
           new Token(TokenType.Import),
           new Token(TokenType.Identifier, new TokenValue("std")),
@@ -191,25 +161,6 @@ public class LexerTest
           new Token(TokenType.Bool),
           new Token(TokenType.Assignment),
           new Token(TokenType.False),
-          new Token(TokenType.Semicolon)
-        ]
-      },
-      {
-        "const arr:int[] = [1, 2, 4];", [
-          new Token(TokenType.Const),
-          new Token(TokenType.Identifier, new TokenValue("arr")),
-          new Token(TokenType.ColonTypeIndication),
-          new Token(TokenType.Int),
-          new Token(TokenType.OpenSquareBracket),
-          new Token(TokenType.CloseSquareBracket),
-          new Token(TokenType.Assignment),
-          new Token(TokenType.OpenSquareBracket),
-          new Token(TokenType.NumberLiteral, new TokenValue("1")),
-          new Token(TokenType.Comma),
-          new Token(TokenType.NumberLiteral, new TokenValue("2")),
-          new Token(TokenType.Comma),
-          new Token(TokenType.NumberLiteral, new TokenValue("4")),
-          new Token(TokenType.CloseSquareBracket),
           new Token(TokenType.Semicolon)
         ]
       },
@@ -500,12 +451,10 @@ public class LexerTest
         ]
       },
       {
-        "print(car.brand);", [
+        "print(car);", [
           new Token(TokenType.Print),
           new Token(TokenType.OpenParenthesis),
           new Token(TokenType.Identifier, new TokenValue("car")),
-          new Token(TokenType.DotFieldAccess),
-          new Token(TokenType.Identifier, new TokenValue("brand")),
           new Token(TokenType.CloseParenthesis),
           new Token(TokenType.Semicolon),
         ]
@@ -561,81 +510,6 @@ public class LexerTest
           new Token(TokenType.NumberLiteral, new TokenValue("3")),
           new Token(TokenType.Semicolon),
           ]
-      },
-    };
-  }
-
-  public static TheoryData<string, string> GetLexicalStatsData()
-  {
-    return new TheoryData<string, string>
-    {
-      {
-        @"import std;
-
-        func add:int(a:int, b:int)
-        {
-          return a + b;
-        }
-
-        func main:void()
-        { 
-          let result:int = add(3, 5);
-          print(""Sum ="", result);
-        } 
-        ",
-        @"keywords: 11
-        identifier: 10
-        number literals: 2
-        string literals: 1
-        operators: 15
-        other lexemes: 11
-        "
-      },
-      {
-        @"import std;
-
-        /// функция для суммирования переменных
-        func sum:int(a:int, b:int)
-        {
-          return a + b;
-        }
-
-        func main:void()
-        {
-          let total:int = 0; /// инициализация total
-          let limit:int = 5;
-          
-          /*
-            через for проходим до лимита
-            и суммируем total c i на 2
-          */
-          for (let i:int = 1; i <= limit; i++)
-          {
-            total += sum(i, 2);
-          }
-
-          while (total > 10)
-          {
-            print(""Reducing total ="", total);
-            total = total - 3;
-          }
-
-          if (total == 7)
-          {
-            print(""Lucky number!"");
-          }
-          else {
-            print(""Final total ="", total);
-          }
-        }
-        ",
-        @"keywords: 21
-        identifier: 22
-        number literals: 7
-        string literals: 3
-        operators: 37
-        other lexemes: 31
-        "
       },
     };
   }

@@ -77,6 +77,22 @@ public class InterpreterTest
           new List<decimal> { 314.159265358m }
         )
       },
+      {
+        @"
+        func maia:void()
+        {
+          let a:int = input();
+          let b:int = input();
+          let result:int = a + b;
+
+          print(result);
+        }
+        ",
+        new Tuple<List<decimal>, List<decimal>>(
+          new List<decimal> { 10, 10 },
+          new List<decimal> { 20 }
+        )
+      },
     };
   }
 }

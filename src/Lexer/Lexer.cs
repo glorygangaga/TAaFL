@@ -17,12 +17,12 @@ public class Lexer(string text)
     { "and", TokenType.And },
     { "or", TokenType.Or },
     { "if", TokenType.If },
+    { "elif", TokenType.Elif },
     { "else", TokenType.Else },
     { "for", TokenType.For },
     { "while", TokenType.While },
     { "func", TokenType.Func },
     { "return", TokenType.Return },
-    { "struct", TokenType.Struct },
     { "import", TokenType.Import },
     { "input", TokenType.Input },
     { "print", TokenType.Print },
@@ -35,6 +35,12 @@ public class Lexer(string text)
     { "round", TokenType.Round },
     { "ceil", TokenType.Ceil },
     { "floor", TokenType.Floor },
+    { "main", TokenType.Main },
+    { "switch", TokenType.Switch },
+    { "case", TokenType.Case },
+    { "break", TokenType.Break },
+    { "continue", TokenType.Continue },
+    { "default", TokenType.Default },
   };
 
   private readonly TextScanner scanner = new TextScanner(text);
@@ -196,10 +202,6 @@ public class Lexer(string text)
         return new Token(TokenType.OpenCurlyBrace);
       case '}':
         return new Token(TokenType.CloseCurlyBracket);
-      case '[':
-        return new Token(TokenType.OpenSquareBracket);
-      case ']':
-        return new Token(TokenType.CloseSquareBracket);
       case '?':
         return new Token(TokenType.QuestionMark);
       case '>':
@@ -286,8 +288,6 @@ public class Lexer(string text)
         return new Token(TokenType.Division);
       case '%':
         return new Token(TokenType.Remainder);
-      case '.':
-        return new Token(TokenType.DotFieldAccess);
       default:
         return new Token(TokenType.Error, new TokenValue(ch.ToString()));
     }

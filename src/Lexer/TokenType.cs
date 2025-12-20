@@ -58,6 +58,11 @@ public enum TokenType
   If,
 
   /// <summary>
+  /// Ветвление и циклы elif
+  /// </summary>
+  Elif,
+
+  /// <summary>
   /// Ветвление и циклы Else
   /// </summary>
   Else,
@@ -81,11 +86,6 @@ public enum TokenType
   /// Ключевое слово return
   /// </summary>
   Return,
-
-  /// <summary>
-  /// Ключевое слово struct
-  /// </summary>
-  Struct,
 
   /// <summary>
   /// Ключевое слово import
@@ -213,29 +213,44 @@ public enum TokenType
   ColonTypeIndication,
 
   /// <summary>
-  /// Оператор доступа к полю структуры "."
-  /// </summary>
-  DotFieldAccess,
-
-  /// <summary>
   ///  Открывающая круглая скобка '('.
   /// </summary>
   OpenParenthesis,
 
   /// <summary>
+  /// Основная ф-ия "main"
+  /// </summary>
+  Main,
+
+  /// <summary>
+  /// Оператор switch
+  /// </summary>
+  Switch,
+
+  /// <summary>
+  /// Оператор switch
+  /// </summary>
+  Case,
+
+  /// <summary>
+  /// Оператор Default
+  /// </summary>
+  Default,
+
+  /// <summary>
+  /// Оператор break
+  /// </summary>
+  Break,
+
+  /// <summary>
+  /// Оператор continue
+  /// </summary>
+  Continue,
+
+  /// <summary>
   ///  Закрывающая круглая скобка ')'.
   /// </summary>
   CloseParenthesis,
-
-  /// <summary>
-  /// Открывающая квадратная скобка '['.
-  /// </summary>
-  OpenSquareBracket,
-
-  /// <summary>
-  /// Закрывающая квадратная скобка ']'.
-  /// </summary>
-  CloseSquareBracket,
 
   /// <summary>
   /// Открывающая фигурная скобка '{'.

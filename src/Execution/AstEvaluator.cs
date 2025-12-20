@@ -2,6 +2,8 @@ using Ast;
 using Ast.Declarations;
 using Ast.Expressions;
 
+using Execution.Exceptions;
+
 namespace Execution;
 
 public class AstEvaluator : IAstVisitor
@@ -146,13 +148,23 @@ public class AstEvaluator : IAstVisitor
           break;
         }
 
-        e.Body.Accept(this);
-        values.Pop();
+        try
+        {
+          e.Body.Accept(this);
+          values.Pop();
+        }
+        catch (ContinueLoopException)
+        {
+        }
 
         iteratorValue += stepValue;
         context.AssignVariable(e.IteratorName, iteratorValue);
       }
 
+      values.Push(0);
+    }
+    catch (BreakLoopException)
+    {
       values.Push(0);
     }
     finally
@@ -189,6 +201,10 @@ public class AstEvaluator : IAstVisitor
 
       function.Body.Accept(this);
     }
+    catch (ReturnException ret)
+    {
+      values.Push(ret.Value ?? 0);
+    }
     finally
     {
       context.PopScope();
@@ -208,7 +224,7 @@ public class AstEvaluator : IAstVisitor
     }
     else
     {
-      e.ElseBranch.Accept(this);
+      e.ElseBranch?.Accept(this);
     }
   }
 
@@ -287,6 +303,101 @@ public class AstEvaluator : IAstVisitor
 
     context.Environment.WriteNumber(value);
     values.Push(value);
+  }
+
+  public void Visit(WhileLoopExpression e)
+  {
+    values.Push(0);
+    try
+    {
+      while (true)
+      {
+        e.Condition.Accept(this);
+        decimal condition = values.Pop();
+        if (condition == 0)
+        {
+          break;
+        }
+
+        try
+        {
+          e.LoopBody.Accept(this);
+          values.Pop();
+        }
+        catch (ContinueLoopException)
+        {
+          continue;
+        }
+      }
+    }
+    catch (BreakLoopException)
+    {
+    }
+  }
+
+  public void Visit(BreakLoopExpression e)
+  {
+    values.Push(0);
+    throw new BreakLoopException();
+  }
+
+  public void Visit(SwitchExpression e)
+  {
+    try
+    {
+      e.Expression.Accept(this);
+      decimal expr = values.Pop();
+      bool matched = false;
+
+      foreach (SwitchCase caseExpr in e.Cases)
+      {
+        caseExpr.Value.Accept(this);
+        decimal caseValue = values.Pop();
+        if (caseValue == expr)
+        {
+          matched = true;
+          caseExpr.Body.Accept(this);
+
+          return;
+        }
+      }
+
+      if (!matched && e.DefaultCase != null)
+      {
+        e.DefaultCase.Accept(this);
+        return;
+      }
+
+      values.Push(0);
+    }
+    catch (BreakLoopException)
+    {
+      values.Push(0);
+    }
+  }
+
+  public void Visit(ContinueLoopExpression e)
+  {
+    values.Push(0);
+    throw new ContinueLoopException();
+  }
+
+  public void Visit(ReturnExpression e)
+  {
+    decimal? value = null;
+    if (e.Value != null)
+    {
+      e.Value.Accept(this);
+      value = values.Pop();
+    }
+
+    throw new ReturnException(value);
+  }
+
+  public void Visit(DeclarationExpression e)
+  {
+    e.Declaration.Accept(this);
+    values.Push(0);
   }
 
   public void Visit(ConstantDeclaration d)
