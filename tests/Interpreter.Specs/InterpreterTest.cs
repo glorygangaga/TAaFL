@@ -184,12 +184,16 @@ public class InterpreterTest
               print(3);
               break;
             }
+            default:
+            {
+              print(0);
+            }
           }
         }
         ",
         new Tuple<List<decimal>, List<decimal>>(
-          new List<decimal> { 3 },
-          new List<decimal> { 3 }
+          new List<decimal> { 30 },
+          new List<decimal> { 0 }
         )
       },
       {
@@ -199,8 +203,15 @@ public class InterpreterTest
             return b**2 - 4 * a * c;
         }
 
+        func nothing:void()
+        {
+          return;
+          print(1);
+        }
+
         func main:void()
         {
+            nothing();
             let a:int = input();
             let b:int = input();
             let c:int = input();
@@ -243,6 +254,34 @@ public class InterpreterTest
         new Tuple<List<decimal>, List<decimal>>(
           new List<decimal> { 1, 2, 1 },
           new List<decimal> { 1, -1 }
+        )
+      },
+      {
+        @"
+          func main:void()
+          {
+            for (let i: int = 0; i < 10; i++)
+            {
+              if (i % 2 == 0)
+              {
+                if (i == 2)
+                {
+                  continue;
+                }
+
+                print(i);
+              }
+
+              if (i == 7)
+              {
+                break;
+              }
+            }
+          }
+        ",
+        new Tuple<List<decimal>, List<decimal>>(
+          new List<decimal> { },
+          new List<decimal> { 0, 4, 6 }
         )
       },
     };

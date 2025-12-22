@@ -146,8 +146,23 @@ public class Parser
       case TokenType.Identifier:
         string name = tokens.Peek().Value!.ToString();
         tokens.Advance();
-        Expression expr = ParseAssignableExpr(name);
+
+        Expression expr;
+        if (tokens.Peek().Type == TokenType.Assignment)
+        {
+          expr = ParseAssignableExpr(name);
+        }
+        else if (tokens.Peek().Type == TokenType.OpenParenthesis)
+        {
+          expr = ParseFunctionCall(name);
+        }
+        else
+        {
+          throw new Exception();
+        }
+
         Match(TokenType.Semicolon);
+
         return expr;
       case TokenType.Let:
       case TokenType.Const:
