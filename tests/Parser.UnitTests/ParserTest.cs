@@ -109,28 +109,44 @@ public class ParserTest
     return new TheoryData<string, List<decimal>>
     {
       {
-        @"let x: int = 1;
+        @"
+        func main:void()
+        {
+          let x: int = 1;
           const y: int = 10;
           print(x + y);
+        }
         ", [11]
       },
       {
-        @"let t: int;
-        t = 20;
-        const result: int = t * 10;
-        print(max(result, 199));
+        @"
+        func main:void()
+        {
+          let t: int;
+          t = 20;
+          const result: int = t * 10;
+          print(max(result, 199));
+        }
         ", [200]
       },
       {
-        @"const _r: int = 10;
-        print(Pi * pow(_r, 2));
+        @"
+        func main:void()
+        {
+          const _r: int = 10;
+          print(Pi * pow(_r, 2));
+        }
         ", [314.159265358m]
       },
       {
-        @"const x: int = 2;
-        const y: int = 2;
-        const result: int = (x + y) ** 0.5;
-        print(result);
+        @"
+        func main:void()
+        {
+          const x: int = 2;
+          const y: int = 2;
+          const result: int = (x + y) ** 0.5;
+          print(result);
+        }
         ", [2]
       },
     };

@@ -41,13 +41,22 @@ public class Parser
   /// </summary>
   public void ParseProgram()
   {
-    while (tokens.Peek().Type != TokenType.EndOfFile)
+    while (IsTopLevelDeclaration() && tokens.Peek().Type != TokenType.EndOfFile)
     {
       AstNode node = ParseTopLevelDeclaration();
       evaluator.Evaluate(node);
-
-      Match(TokenType.Semicolon);
     }
+
+    if (!IsTopLevelDeclaration())
+    {
+      AstNode mainFunc = ParseMainFunction();
+      evaluator.Evaluate(mainFunc);
+    }
+  }
+
+  private bool IsTopLevelDeclaration()
+  {
+    return !(tokens.Peek().Type == TokenType.Func && tokens.Peek(1).Type == TokenType.Main);
   }
 
   /// <summary>
@@ -59,19 +68,24 @@ public class Parser
     {
       case TokenType.Const:
       case TokenType.Let:
-        return ParseValueDeclaration();
+        Declaration decl = ParseValueDeclaration();
+        Match(TokenType.Semicolon);
+        return decl;
       case TokenType.Func:
         return ParseFunctionDeclaration();
       default:
-        return ParseExpr();
+        Expression expr = ParseExpr();
+        Match(TokenType.Semicolon);
+        return expr;
     }
   }
 
   /// <summary>
   /// main_function = "func", "main", ":", "void", "(", ")", block ;.
   /// </summary>
-  private Expression ParseMainFunction()
+  private AstNode ParseMainFunction()
   {
+    Match(TokenType.Func);
     Match(TokenType.Main);
     Match(TokenType.ColonTypeIndication);
     Match(TokenType.Void);
@@ -86,9 +100,18 @@ public class Parser
   private Expression ParseBlock()
   {
     Match(TokenType.OpenCurlyBrace);
-    Expression state = ParseStatement();
+
+    List<Expression> statements = [];
+
+    while (tokens.Peek().Type != TokenType.CloseCurlyBracket)
+    {
+      Expression state = ParseStatement();
+      statements.Add(state);
+    }
+
     Match(TokenType.CloseCurlyBracket);
-    return state;
+
+    return new SequenceExpression(statements);
   }
 
   /// <summary>
@@ -112,7 +135,6 @@ public class Parser
         return ParseForExpr();
       case TokenType.While:
         return ParseWhileExpr();
-
       case TokenType.Return:
         return ParseReturnStatement();
       case TokenType.Break:
@@ -123,14 +145,29 @@ public class Parser
         return ParseSwitchExpr();
       case TokenType.Identifier:
         string name = tokens.Peek().Value!.ToString();
-        return ParseAssignableExpr(name);
-
+        tokens.Advance();
+        Expression expr = ParseAssignableExpr(name);
+        Match(TokenType.Semicolon);
+        return expr;
       case TokenType.Let:
       case TokenType.Const:
         Declaration decl = ParseValueDeclaration();
+        Match(TokenType.Semicolon);
         return new DeclarationExpression(decl);
+      case TokenType.Semicolon:
+        tokens.Advance();
+        return new EmptyExpression();
+      case TokenType.SingleLineComment:
+        tokens.Advance();
+        return new EmptyExpression();
+      case TokenType.OpenBlockComments:
+        Match(TokenType.CloseBlockComments);
+        tokens.Advance();
+        return new EmptyExpression();
       default:
-        return ParseExpr();
+        Expression expression = ParseExpr();
+        Match(TokenType.Semicolon);
+        return expression;
     }
   }
 
@@ -177,6 +214,7 @@ public class Parser
   private Expression ParseContinueExpr()
   {
     Match(TokenType.Continue);
+    Match(TokenType.Semicolon);
     return new ContinueLoopExpression();
   }
 
@@ -186,6 +224,7 @@ public class Parser
   private Expression ParseBreakExpr()
   {
     Match(TokenType.Break);
+    Match(TokenType.Semicolon);
     return new BreakLoopExpression();
   }
 
@@ -218,6 +257,7 @@ public class Parser
 
     Expression? elseBranch = null;
 
+    List<(Expression condition, Expression block)> elifBranches = new List<(Expression, Expression)>();
     while (tokens.Peek().Type == TokenType.Elif)
     {
       tokens.Advance();
@@ -226,13 +266,20 @@ public class Parser
       Match(TokenType.CloseParenthesis);
       Expression elifBlock = ParseBlock();
 
-      elseBranch = new IfElseExpression(elifCondition, elifBlock, elseBranch);
+      elifBranches.Add((elifCondition, elifBlock));
     }
 
     if (tokens.Peek().Type == TokenType.Else)
     {
       tokens.Advance();
       elseBranch = ParseBlock();
+    }
+
+    for (int i = elifBranches.Count - 1; i >= 0; i--)
+    {
+      Expression cond = elifBranches[i].Item1;
+      Expression block = elifBranches[i].Item2;
+      elseBranch = new IfElseExpression(cond, block, elseBranch);
     }
 
     return new IfElseExpression(expr, thenBranch, elseBranch);
@@ -260,7 +307,6 @@ public class Parser
         Match(TokenType.Int);
         Match(TokenType.Assignment);
 
-        tokens.Advance();
         forInit = ParseExpr();
         break;
       default:
@@ -268,13 +314,13 @@ public class Parser
     }
 
     Match(TokenType.Semicolon);
-    Expression expr = ParseExpr();
+    Expression endCondition = ParseExpr();
     Match(TokenType.Semicolon);
-    Expression forUpdate = ParseExpr();
+    Expression stepValue = ParseExpr();
     Match(TokenType.CloseParenthesis);
     Expression body = ParseBlock();
 
-    return new ForLoopExpression(name, forInit, forUpdate, expr, body);
+    return new ForLoopExpression(name, forInit, endCondition, stepValue, body);
   }
 
   /// <summary>
@@ -290,6 +336,7 @@ public class Parser
       expr = ParseExpr();
     }
 
+    Match(TokenType.Semicolon);
     return new ReturnExpression(expr);
   }
 
@@ -381,7 +428,7 @@ public class Parser
   /// </summary>
   private Expression ParseAssignableExpr(string name)
   {
-    tokens.Advance();
+    Match(TokenType.Assignment);
     Expression value = ParseExpr();
     return new AssignmentExpression(name, value);
   }
@@ -675,7 +722,8 @@ public class Parser
           value = ParsePostfixOperator();
           continue;
 
-        default: return value;
+        default:
+          return value;
       }
     }
   }
@@ -713,7 +761,9 @@ public class Parser
       case TokenType.Round:
       case TokenType.Pow:
       case TokenType.Abs:
-        return ParseFunctionCall(BuildInFuncToString(tokens.Peek()));
+        string funcStr = BuildInFuncToString(tokens.Peek());
+        tokens.Advance();
+        return ParseFunctionCall(funcStr);
       case TokenType.NumberLiteral:
         return ParseLiteral();
       case TokenType.True:
@@ -731,6 +781,13 @@ public class Parser
         return ParseInput();
       case TokenType.Print:
         return ParsePrintExpr();
+      case TokenType.SingleLineComment:
+        tokens.Advance();
+        return new EmptyExpression();
+      case TokenType.OpenBlockComments:
+        Match(TokenType.CloseBlockComments);
+        tokens.Advance();
+        return new EmptyExpression();
       default:
         throw new UnexpectedLexemeException(t.Type, t);
     }
@@ -772,8 +829,7 @@ public class Parser
   {
     tokens.Advance();
     Match(TokenType.OpenParenthesis);
-
-    Expression values = ParseExpr();
+    List<Expression> values = ParseExpressionList();
     Match(TokenType.CloseParenthesis);
     return new PrintExpression(values);
   }
@@ -849,12 +905,31 @@ public class Parser
   /// </summary>
   private Expression ParseFunctionCall(string name)
   {
-    tokens.Advance();
     Match(TokenType.OpenParenthesis);
-    List<Expression> args = ParseExpressionList();
+    List<Expression> args = [];
+    if (tokens.Peek().Type != TokenType.CloseParenthesis)
+    {
+      args = ParseArgumentList();
+    }
+
     Match(TokenType.CloseParenthesis);
 
     return new FunctionCallExpression(name, args);
+  }
+
+  /// <summary>
+  /// argument_list = expression, { ",", expression } ;.
+  /// </summary>
+  private List<Expression> ParseArgumentList()
+  {
+    List<Expression> values = new List<Expression> { ParseExpr() };
+    while (tokens.Peek().Type == TokenType.Comma)
+    {
+      tokens.Advance();
+      values.Add(ParseExpr());
+    }
+
+    return values;
   }
 
   private Token Match(TokenType expected)

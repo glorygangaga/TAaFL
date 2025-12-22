@@ -7,21 +7,30 @@ namespace Parser;
 public class TokenStream
 {
   private readonly Lex lexer;
-  private Token token;
+  private readonly Queue<Token> buffer = new();
 
-  public TokenStream(string text)
+  public TokenStream(string text, int lookahead = 2)
   {
     lexer = new Lex(text);
-    token = lexer.ParseToken();
+    for (int i = 0; i < lookahead; i++)
+    {
+      buffer.Enqueue(lexer.ParseToken());
+    }
   }
 
-  public Token Peek()
+  public Token Peek(int k = 0)
   {
-    return token;
+    if (k < 0 || k >= buffer.Count)
+    {
+      throw new ArgumentOutOfRangeException(nameof(k));
+    }
+
+    return buffer.ElementAt(k);
   }
 
   public void Advance()
   {
-    token = lexer.ParseToken();
+    buffer.Dequeue();
+    buffer.Enqueue(lexer.ParseToken());
   }
 }

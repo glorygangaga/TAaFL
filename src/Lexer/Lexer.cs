@@ -77,7 +77,7 @@ public class Lexer(string text)
   private Token ParseIdentifierOrKeyword()
   {
     string identifier = "";
-    for (char ch = scanner.Peek(); ch == '_' || char.IsLetter(ch); ch = scanner.Peek())
+    for (char ch = scanner.Peek(); ch == '_' || char.IsLetter(ch) || char.IsAsciiDigit(ch); ch = scanner.Peek())
     {
       identifier += ch;
       scanner.Advance();

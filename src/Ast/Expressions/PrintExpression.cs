@@ -1,8 +1,13 @@
 namespace Ast.Expressions;
 
-public sealed class PrintExpression(Expression value) : Expression
+public sealed class PrintExpression : Expression
 {
-  public Expression Value { get; } = value;
+  public PrintExpression(IReadOnlyList<Expression> values)
+  {
+    Values = values;
+  }
+
+  public IReadOnlyList<Expression> Values { get; }
 
   public override void Accept(IAstVisitor visitor)
   {

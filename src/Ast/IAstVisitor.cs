@@ -23,8 +23,6 @@ public interface IAstVisitor
 
   public void Visit(VariableExpression e);
 
-  public void Visit(VariableScopeExpression e);
-
   public void Visit(PrintExpression e);
 
   void Visit(WhileLoopExpression e);
@@ -36,6 +34,8 @@ public interface IAstVisitor
   void Visit(ContinueLoopExpression e);
 
   void Visit(ReturnExpression e);
+
+  void Visit(EmptyExpression e);
 
   void Visit(DeclarationExpression e);
 
