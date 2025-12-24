@@ -72,7 +72,7 @@ func main:void()
 * **Статическая строгая типизация:** Тип переменной или функции указывается явно и проверяется на этапе компиляции
 * **Последовательное исполнение:** Инструкции выполняются сверху вниз
 * **Управление памятью и областью видимости:** Блочная область видимости (`{}`). Поддержка изменяемых (`let`) и константных (`const`) переменных
-* **Управление потоком:** Поддерживаются инструкции `if`/`elif`/`else`, `while`, `for`, `switch`
+* **Управление потоком:** Поддерживаются инструкции `if`/`elif`/`else`, `while`, `for`
 * **Ввод-вывод:** Через встроенные функции `input()` и `print()`
 * **Чёткий синтаксис:** Обязательные разделители инструкций (`;`)
 
@@ -109,7 +109,6 @@ expression_statement
 | if_statement
 | while_statement
 | for_statement
-| switch_statement
 | break_statement
 | continue_statement
 | return_statement
@@ -191,15 +190,6 @@ variable_declaration
 for_update =
 expression
 | empty_statement ;
-
-switch_statement =
-"switch", "(", expression, ")", "{", { case_clause }, [ default_clause ],"}" ;
-
-case_clause =
-"case", expression, ":", { statement } ;
-
-default_clause =
-"default", ":", { statement } ;
 
 break_statement = "break", ";" ;
 
