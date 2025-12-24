@@ -164,7 +164,17 @@ identifier
 | literal
 | boolean
 | constant
+| input_expr 
+| print_expr
 | "(", expression, ")" ;
+
+(* === ВЫРАЖЕНИЯ ВВОДА-ВЫВОДА === *)
+
+input_expr = 
+    "input", "(", ")" ;
+
+print_expr = 
+    "print", "(", [ expression_list ], ")" ;
 
 (* === ПРИСВАИВАЕМЫЕ ВЫРАЖЕНИЯ === *)
 
