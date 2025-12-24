@@ -1,5 +1,7 @@
 using Ast.Declarations;
 
+using Runtime;
+
 namespace Execution;
 
 /// <summary>
@@ -9,7 +11,7 @@ public class Context
 {
   private readonly IEnvironment environment;
   private readonly Stack<Scope> scopes = [];
-  private readonly Dictionary<string, decimal> constants = [];
+  private readonly Dictionary<string, Value> constants = [];
   private readonly Dictionary<string, FunctionDeclaration> functions = [];
 
   public Context(IEnvironment environment)
@@ -33,17 +35,17 @@ public class Context
   /// <summary>
   /// Возвращает значение переменной или константы.
   /// </summary>
-  public decimal GetValue(string name)
+  public Value GetValue(string name)
   {
     foreach (Scope s in scopes)
     {
-      if (s.TryGetVariable(name, out decimal variable))
+      if (s.TryGetVariable(name, out Value? variable) && variable is not null)
       {
         return variable;
       }
     }
 
-    if (constants.TryGetValue(name, out decimal constant))
+    if (constants.TryGetValue(name, out Value? constant))
     {
       return constant;
     }
@@ -54,7 +56,7 @@ public class Context
   /// <summary>
   /// Присваивает (изменяет) значение переменной.
   /// </summary>
-  public void AssignVariable(string name, decimal value)
+  public void AssignVariable(string name, Value value)
   {
     foreach (Scope s in scopes.Reverse())
     {
@@ -70,7 +72,7 @@ public class Context
   /// <summary>
   /// Определяет переменную в текущей области видимости.
   /// </summary>
-  public void DefineVariable(string name, decimal value)
+  public void DefineVariable(string name, Value value)
   {
     if (!scopes.Peek().TryDefineVariable(name, value))
     {
@@ -81,7 +83,7 @@ public class Context
   /// <summary>
   /// Определяет константу в глобальной области видимости.
   /// </summary>
-  public void DefineConstant(string name, decimal value)
+  public void DefineConstant(string name, Value value)
   {
     if (!constants.TryAdd(name, value))
     {

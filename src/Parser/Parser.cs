@@ -1,10 +1,16 @@
-﻿using Ast;
+﻿using System.Globalization;
+
+using Ast;
 using Ast.Declarations;
 using Ast.Expressions;
 
 using Execution;
 
 using Lexer;
+
+using Runtime;
+
+using ValueType = Runtime.ValueType;
 
 namespace Parser;
 
@@ -15,43 +21,38 @@ namespace Parser;
 public class Parser
 {
   private readonly TokenStream tokens;
-  private readonly AstEvaluator evaluator;
   private readonly IEnvironment environment;
-  private readonly Context context;
 
   public Parser(string source)
   {
     tokens = new TokenStream(source);
     environment = new FakeEnvironment();
-    context = new Context(environment);
-
-    evaluator = new AstEvaluator(context);
   }
 
-  public Parser(Context context, IEnvironment environmentParser, string code)
+  public Parser(IEnvironment environmentParser, string code)
   {
     environment = environmentParser;
     tokens = new TokenStream(code);
-    this.context = context;
-    evaluator = new AstEvaluator(context);
   }
 
   /// <summary>
   /// program = { top_level_declaration }, main_function ;.
   /// </summary>
-  public void ParseProgram()
+  public Expression ParseProgram()
   {
+    List<Expression> expressions = new();
+
     while (IsTopLevelDeclaration() && tokens.Peek().Type != TokenType.EndOfFile)
     {
-      AstNode node = ParseTopLevelDeclaration();
-      evaluator.Evaluate(node);
+      expressions.Add((Expression)ParseTopLevelDeclaration());
     }
 
     if (!IsTopLevelDeclaration())
     {
-      AstNode mainFunc = ParseMainFunction();
-      evaluator.Evaluate(mainFunc);
+      expressions.Add((Expression)ParseMainFunction());
     }
+
+    return new SequenceExpression(expressions);
   }
 
   private bool IsTopLevelDeclaration()
@@ -325,7 +326,7 @@ public class Parser
         forInit = ParseExpr();
         break;
       default:
-        throw new Exception("Unreachable code");
+        throw new Exception("");
     }
 
     Match(TokenType.Semicolon);
@@ -364,27 +365,27 @@ public class Parser
     string name = tokens.Peek().Value!.ToString();
     tokens.Advance();
     Match(TokenType.ColonTypeIndication);
-    tokens.Advance();
+    string type = GetValueType();
     Match(TokenType.OpenParenthesis);
-    List<string> parameters = ParseParameterList();
+    List<ParameterDeclaration> parameters = ParseParameterList();
     Match(TokenType.CloseParenthesis);
     Expression value = ParseBlock();
-    return new FunctionDeclaration(name, parameters, value);
+    return new FunctionDeclaration(name, parameters, type, value);
   }
 
   /// <summary>
   /// parameter_list = parameter, { ",", parameter } ;.
   /// </summary>
-  private List<string> ParseParameterList()
+  private List<ParameterDeclaration> ParseParameterList()
   {
-    List<string> parameters = [];
+    List<ParameterDeclaration> parameters = [];
 
     while (tokens.Peek().Type != TokenType.CloseParenthesis)
     {
       string parameter = Match(TokenType.Identifier).Value!.ToString();
       Match(TokenType.ColonTypeIndication);
-      Match(TokenType.Int);
-      parameters.Add(parameter);
+      string type = GetValueType();
+      parameters.Add(new ParameterDeclaration(parameter, type));
 
       if (tokens.Peek().Type != TokenType.Comma)
       {
@@ -422,9 +423,20 @@ public class Parser
   {
     tokens.Advance();
     string name = tokens.Peek().Value!.ToString();
+
+    if (ReservedNames.All.Contains(name))
+    {
+      throw new Exception($"'{name}' is a reserved name");
+    }
+
     tokens.Advance();
     Match(TokenType.ColonTypeIndication);
-    Match(TokenType.Int);
+
+    string type = GetValueType();
+    if (type == "void")
+    {
+      throw new Exception("Constant can't be a void");
+    }
 
     Expression? value = null;
 
@@ -434,7 +446,7 @@ public class Parser
       value = ParseExpr();
     }
 
-    return new VariableDeclaration(name, value);
+    return new VariableDeclaration(name, type, value);
   }
 
   /// <summary>
@@ -444,8 +456,9 @@ public class Parser
   private Expression ParseAssignableExpr(string name)
   {
     Match(TokenType.Assignment);
-    Expression value = ParseExpr();
-    return new AssignmentExpression(name, value);
+    Expression left = new VariableExpression(name);
+    Expression right = ParseExpr();
+    return new AssignmentExpression(left, right);
   }
 
   /// <summary>
@@ -462,13 +475,24 @@ public class Parser
     }
 
     string name = tokens.Peek().Value!.ToString();
+
+    if (ReservedNames.All.Contains(name))
+    {
+      throw new Exception($"'{name}' is a reserved name");
+    }
+
     tokens.Advance();
     Match(TokenType.ColonTypeIndication);
-    Match(TokenType.Int);
+    string type = GetValueType();
+    if (type == "void")
+    {
+      throw new Exception("Constant can't be a void");
+    }
+
     Match(TokenType.Assignment);
     Expression value = ParseExpr();
 
-    return new ConstantDeclaration(name, value);
+    return new ConstantDeclaration(name, type, value);
   }
 
   /// <summary>
@@ -769,17 +793,8 @@ public class Parser
           return new VariableExpression(name);
         }
 
-      case TokenType.Min:
-      case TokenType.Max:
-      case TokenType.Ceil:
-      case TokenType.Floor:
-      case TokenType.Round:
-      case TokenType.Pow:
-      case TokenType.Abs:
-        string funcStr = BuildInFuncToString(tokens.Peek());
-        tokens.Advance();
-        return ParseFunctionCall(funcStr);
       case TokenType.NumberLiteral:
+      case TokenType.StringLiteral:
         return ParseLiteral();
       case TokenType.True:
       case TokenType.False:
@@ -808,21 +823,6 @@ public class Parser
     }
   }
 
-  private string BuildInFuncToString(Token token)
-  {
-    return token.Type switch
-    {
-      TokenType.Min => "min",
-      TokenType.Max => "max",
-      TokenType.Ceil => "ceil",
-      TokenType.Floor => "floor",
-      TokenType.Round => "round",
-      TokenType.Pow => "pow",
-      TokenType.Abs => "abs",
-      _ => throw new UnexpectedLexemeException(token.Type, token),
-    };
-  }
-
   /// <summary>
   /// Парсинг инпута
   /// input_expr = "input", "(", [ expression ], ")" ;.
@@ -833,7 +833,18 @@ public class Parser
     Match(TokenType.OpenParenthesis);
     Match(TokenType.CloseParenthesis);
 
-    return new LiteralExpression(environment.ReadNumber());
+    Value value = environment.Read();
+
+    ValueType type = value switch
+    {
+      _ when value.IsInt() => ValueType.Int,
+      _ when value.IsFloat() => ValueType.Float,
+      _ when value.IsBool() => ValueType.Bool,
+      _ when value.IsString() => ValueType.String,
+      _ => throw new InvalidOperationException($"Unknown value type: {value}")
+    };
+
+    return new LiteralExpression(type, value);
   }
 
   /// <summary>
@@ -860,8 +871,8 @@ public class Parser
 
     return t.Type switch
     {
-      TokenType.Euler => new LiteralExpression(2.71828182846M),
-      TokenType.Pi => new LiteralExpression(3.14159265358M),
+      TokenType.Euler => new LiteralExpression(ValueType.Float, new Value(2.7182818f)),
+      TokenType.Pi => new LiteralExpression(ValueType.Float, new Value(3.1415927f)),
       _ => throw new UnexpectedLexemeException(t.Type, t),
     };
   }
@@ -876,8 +887,30 @@ public class Parser
     switch (t.Type)
     {
       case TokenType.NumberLiteral:
-        tokens.Advance();
-        return new LiteralExpression(t.Value!.ToDecimal());
+        {
+          tokens.Advance();
+          string text = t.Value!.ToString();
+
+          if (text.Contains('.'))
+          {
+            float f = float.Parse(text, CultureInfo.InvariantCulture);
+            return new LiteralExpression(ValueType.Float, new Value(f));
+          }
+          else
+          {
+            int i = int.Parse(text, CultureInfo.InvariantCulture);
+            return new LiteralExpression(ValueType.Float, new Value(i));
+          }
+        }
+
+      case TokenType.StringLiteral:
+        {
+          tokens.Advance();
+          string text = t.Value!.ToString();
+
+          return new LiteralExpression(ValueType.String, new Value(text));
+        }
+
       default:
         throw new UnexpectedLexemeException(t.Type, t);
     }
@@ -894,8 +927,8 @@ public class Parser
 
     return t.Type switch
     {
-      TokenType.True => new LiteralExpression(1.0m),
-      TokenType.False => new LiteralExpression(0.0m),
+      TokenType.True => new LiteralExpression(ValueType.Bool, new Value(true)),
+      TokenType.False => new LiteralExpression(ValueType.Bool, new Value(false)),
       _ => throw new UnexpectedLexemeException(t.Type, t),
     };
   }
@@ -945,6 +978,28 @@ public class Parser
     }
 
     return values;
+  }
+
+  private string GetValueType()
+  {
+    Token t = tokens.Peek();
+    tokens.Advance();
+
+    switch (t.Type)
+    {
+      case TokenType.Int:
+        return "int";
+      case TokenType.Float:
+        return "float";
+      case TokenType.Str:
+        return "string";
+      case TokenType.Bool:
+        return "bool";
+      case TokenType.Void:
+        return "void";
+      default:
+        throw new UnexpectedLexemeException(t.Type, t);
+    }
   }
 
   private Token Match(TokenType expected)

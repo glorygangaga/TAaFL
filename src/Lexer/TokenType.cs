@@ -308,41 +308,6 @@ public enum TokenType
   Euler,
 
   /// <summary>
-  /// модуль числа
-  /// </summary>
-  Abs,
-
-  /// <summary>
-  /// минимальное значение
-  /// </summary>
-  Min,
-
-  /// <summary>
-  /// максимальное значение
-  /// </summary>
-  Max,
-
-  /// <summary>
-  /// возведение в степень
-  /// </summary>
-  Pow,
-
-  /// <summary>
-  /// округление до ближайшего целого
-  /// </summary>
-  Round,
-
-  /// <summary>
-  /// округление вверх
-  /// </summary>
-  Ceil,
-
-  /// <summary>
-  /// округление вниз
-  /// </summary>
-  Floor,
-
-  /// <summary>
   ///  Конец файла.
   /// </summary>
   EndOfFile,

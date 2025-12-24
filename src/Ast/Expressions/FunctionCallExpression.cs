@@ -1,18 +1,27 @@
+using Ast.Attributes;
+using Ast.Declarations;
+
 namespace Ast.Expressions;
 
 public sealed class FunctionCallExpression : Expression
 {
-  private readonly List<Expression> arguments;
+  private AstAttribute<AbstractFunctionDeclaration> function;
 
-  public FunctionCallExpression(string name, List<Expression> arguments)
+  public FunctionCallExpression(string name, IReadOnlyList<Expression> arguments)
   {
     Name = name;
-    this.arguments = arguments;
+    Arguments = arguments;
   }
 
   public string Name { get; }
 
-  public IReadOnlyList<Expression> Arguments => arguments;
+  public AbstractFunctionDeclaration Function
+  {
+    get => function.Get();
+    set => function.Set(value);
+  }
+
+  public IReadOnlyList<Expression> Arguments { get; }
 
   public override void Accept(IAstVisitor visitor)
   {

@@ -44,4 +44,6 @@ public interface IAstVisitor
   public void Visit(FunctionDeclaration d);
 
   public void Visit(VariableDeclaration d);
+
+  public void Visit(ParameterDeclaration d);
 }

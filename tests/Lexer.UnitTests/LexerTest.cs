@@ -409,7 +409,7 @@ public class LexerTest
         ]
       },
       {
-        "for (let i:int = 0; i < length; i++) { print(i); }", [
+        "for (let i:int = 0; i < lengtha; i++) { print(i); }", [
           new Token(TokenType.For),
           new Token(TokenType.OpenParenthesis),
           new Token(TokenType.Let),
@@ -421,7 +421,7 @@ public class LexerTest
           new Token(TokenType.Semicolon),
           new Token(TokenType.Identifier, new TokenValue("i")),
           new Token(TokenType.LessThan),
-          new Token(TokenType.Identifier, new TokenValue("length")),
+          new Token(TokenType.Identifier, new TokenValue("lengtha")),
           new Token(TokenType.Semicolon),
           new Token(TokenType.Identifier, new TokenValue("i")),
           new Token(TokenType.Increment),

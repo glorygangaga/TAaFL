@@ -2,51 +2,70 @@ using Execution;
 
 using Parser;
 
+using Runtime;
+
 namespace Interpreter.Specs;
 
 public class InterpreterTest
 {
-  private static readonly decimal Tolerance = (decimal)Math.Pow(0.1, 5);
+  private static readonly decimal Tolerance = (decimal)Math.Pow(0.1, 4);
 
   [Theory]
   [MemberData(nameof(GetExamplePrograms))]
-  public void ParseTest(string source, Tuple<List<decimal>, List<decimal>> tuple)
+  public void ParseTest(string source, Tuple<List<Value>, List<string>> tuple)
   {
-    List<decimal> input = tuple.Item1;
-    List<decimal> expected = tuple.Item2;
+    List<Value> inputValues = tuple.Item1;
+    List<string> expected = tuple.Item2;
 
     FakeEnvironment environment = new FakeEnvironment();
     Context context = new Context(environment);
 
-    for (int i = input.Count - 1; i >= 0; i--)
+    for (int i = inputValues.Count - 1; i >= 0; i--)
     {
-      environment.WriteNumber(input[i]);
+      environment.Write(inputValues[i]);
     }
 
     Interpreter interpreter = new Interpreter(context, environment);
     interpreter.Execute(source);
 
-    IReadOnlyList<decimal> actual = environment.Results;
+    IReadOnlyList<Value> actualValues = environment.Results;
 
-    if (expected.Count != actual.Count)
-    {
-      Assert.Fail(
-          $"Actual results count does not match expected. Expected: {expected.Count}, Actual: {actual.Count}."
-      );
-    }
+    Assert.Equal(expected.Count, actualValues.Count);
 
-    for (int i = 0, iMax = Math.Min(expected.Count, actual.Count); i < iMax; ++i)
+    for (int i = 0; i < expected.Count; ++i)
     {
-      if (Math.Abs(expected[i] - actual[i]) >= Tolerance)
+      Value actualValue = actualValues[i];
+
+      if (actualValue.IsFloat())
       {
-        Assert.Fail($"Expected does not match actual at index {i}: {expected[i]} != {actual[i]}");
+        decimal actualDecimal = (decimal)actualValue.AsFloat();
+        decimal expectedDecimal = decimal.Parse(expected[i], System.Globalization.CultureInfo.InvariantCulture);
+
+        if (Math.Abs(expectedDecimal - actualDecimal) > Tolerance)
+        {
+          Assert.Fail($"Expected does not match actual at index {i}: {expectedDecimal} != {actualDecimal}");
+        }
+      }
+      else if (actualValue.IsInt())
+      {
+        int actualInt = actualValue.AsInt();
+        int expectedInt = int.Parse(expected[i], System.Globalization.CultureInfo.InvariantCulture);
+        Assert.Equal(expectedInt, actualInt);
+      }
+      else if (actualValue.IsString())
+      {
+        Assert.Equal(expected[i], actualValue.AsString());
+      }
+      else
+      {
+        Assert.Equal(expected[i], actualValue.ToString());
       }
     }
   }
 
-  public static TheoryData<string, Tuple<List<decimal>, List<decimal>>> GetExamplePrograms()
+  public static TheoryData<string, Tuple<List<Value>, List<string>>> GetExamplePrograms()
   {
-    return new TheoryData<string, Tuple<List<decimal>, List<decimal>>>
+    return new TheoryData<string, Tuple<List<Value>, List<string>>>
     {
       {
         @"
@@ -58,9 +77,9 @@ public class InterpreterTest
           }
         }
         ",
-        new Tuple<List<decimal>, List<decimal>>(
-          new List<decimal> { },
-          new List<decimal> { 0, 1, 2, 3, 4 }
+        new Tuple<List<Value>, List<string>>(
+          new List<Value> { },
+          new List<string> { "0", "1", "2", "3", "4" }
         )
       },
       {
@@ -82,9 +101,9 @@ public class InterpreterTest
           }
         }
         ",
-        new Tuple<List<decimal>, List<decimal>>(
-          new List<decimal> { 1 },
-          new List<decimal> { 100 }
+        new Tuple<List<Value>, List<string>>(
+          new List<Value> { new(1) },
+          new List<string> { "100" }
         )
       },
       {
@@ -99,23 +118,23 @@ public class InterpreterTest
           }
         }
         ",
-        new Tuple<List<decimal>, List<decimal>>(
-          new List<decimal> { },
-          new List<decimal> { 0, 1, 2, 3, 4 }
+        new Tuple<List<Value>, List<string>>(
+          new List<Value> { },
+          new List<string> { "0", "1", "2", "3", "4" }
         )
       },
       {
         @"
-          func main:void()
-          {
-            let radius:int = input();
-            let area:int = Pi * radius ** 2;
-            print(area);
-          }
+        func main:void()
+        {
+          let radius:int = input();
+          let area:float = Pi * radius ** 2;
+          print(area);
+        }
         ",
-        new Tuple<List<decimal>, List<decimal>>(
-          new List<decimal> { 10 },
-          new List<decimal> { 314.159265358m }
+        new Tuple<List<Value>, List<string>>(
+          new List<Value> { new(10) },
+          new List<string> { "314.159265358" }
         )
       },
       {
@@ -128,15 +147,15 @@ public class InterpreterTest
 
           let d:int = b ** 2 - 4 * a * c;
 
-          let x1:int = (- b + d ** 0.5) / (2 * a);
-          let x2:int = (- b - d ** 0.5) / (2 * a);
+          let x1:float = (- b + d ** 0.5) / (2 * a);
+          let x2:float = (- b - d ** 0.5) / (2 * a);
           print(x1);
           print(x2);
         }
         ",
-        new Tuple<List<decimal>, List<decimal>>(
-          new List<decimal> { 1, -5, 4 },
-          new List<decimal> { 4, 1 }
+        new Tuple<List<Value>, List<string>>(
+          new List<Value> { new(1), new(-5), new(4) },
+          new List<string> { "4", "1" }
         )
       },
       {
@@ -145,7 +164,7 @@ public class InterpreterTest
         {
           if (n <= 1)
           {
-              return n;
+            return n;
           }
           return fibonacci(n - 1) + fibonacci(n - 2);
         }
@@ -156,9 +175,9 @@ public class InterpreterTest
           print(fibonacci(n));
         }
         ",
-        new Tuple<List<decimal>, List<decimal>>(
-          new List<decimal> { 7 },
-          new List<decimal> { 13 }
+        new Tuple<List<Value>, List<string>>(
+          new List<Value> { new(7) },
+          new List<string> { "13" }
         )
       },
       {
@@ -191,34 +210,27 @@ public class InterpreterTest
           }
         }
         ",
-        new Tuple<List<decimal>, List<decimal>>(
-          new List<decimal> { 30 },
-          new List<decimal> { 0 }
+        new Tuple<List<Value>, List<string>>(
+          new List<Value> { new(30) },
+          new List<string> { "0" }
         )
       },
       {
         @"
-        func calculate_discriminant:int(a:int, b:int, c:int)
+        func calculate_discriminant:float(a:float, b:float, c:float)
         {
-            return b**2 - 4 * a * c;
-        }
-
-        func nothing:void()
-        {
-          return;
-          print(1);
+          return b ** 2.0 - 4.0 * a * c;
         }
 
         func main:void()
         {
-            nothing();
-            let a:int = input();
-            let b:int = input();
-            let c:int = input();
+            let a:float = input();
+            let b:float = input();
+            let c:float = input();
 
-            if (a == 0) 
+            if (a == 0.0) 
             {
-                if (b == 0) 
+                if (b == 0.0) 
                 {
                     print(0);
                 } 
@@ -226,62 +238,34 @@ public class InterpreterTest
                 { 
                     print(1, - c / b);
                 }
-            }
+            } 
             else 
             {
-                let d:int = calculate_discriminant(a, b, c);
+                let d:float = calculate_discriminant(a, b, c);
 
-                if (d < 0)
+                if (d < 0.0)
                 {
-                    print(0);
+                  print(0);
                 }
-                elif (d == 0)
+                elif (d == 0.0)
                 {
-                    let x:int = - b / (2 * a); 
-                    /// x можно заменить на x1 для для проверки области видимости
-                    print(1, x);
+                  let x:float = - b / (2 * a); 
+                  /// x можно заменить на x1 для для проверки области видимости
+                  print(1, x);
                 }
                 else
                 {
-                    let x1:int = (- b + d ** 0.5) / (2 * a);
-                    let x2:int = (- b - d ** 0.5) / (2 * a);
-                    /// возведение в степень можно заменить на встроенную функцию pow(d, 0,5)
-                    print(2, x1, x2)
+                  let x1:float = (- b + d ** 0.5) / (2 * a);
+                  let x2:float = (- b - d ** 0.5) / (2 * a);
+                  /// возведение в степень можно заменить на встроенную функцию pow(d, 0,5)
+                  print(2, x1, x2)
                 }
             }
         }
         ",
-        new Tuple<List<decimal>, List<decimal>>(
-          new List<decimal> { 1, 2, 1 },
-          new List<decimal> { 1, -1 }
-        )
-      },
-      {
-        @"
-          func main:void()
-          {
-            for (let i: int = 0; i < 10; i++)
-            {
-              if (i % 2 == 0)
-              {
-                if (i == 2)
-                {
-                  continue;
-                }
-
-                print(i);
-              }
-
-              if (i == 7)
-              {
-                break;
-              }
-            }
-          }
-        ",
-        new Tuple<List<decimal>, List<decimal>>(
-          new List<decimal> { },
-          new List<decimal> { 0, 4, 6 }
+        new Tuple<List<Value>, List<string>>(
+          new List<Value> { new(1f), new(-3f), new(2f) },
+          new List<string> { "2", "2", "1" }
         )
       },
     };

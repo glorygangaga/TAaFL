@@ -2,15 +2,15 @@ namespace Ast.Expressions;
 
 public sealed class AssignmentExpression : Expression
 {
-  public AssignmentExpression(string name, Expression value)
+  public AssignmentExpression(Expression left, Expression right)
   {
-    Name = name;
-    Value = value;
+    Left = left;
+    Right = right;
   }
 
-  public string Name { get; }
+  public Expression Left { get; }
 
-  public Expression Value { get; }
+  public Expression Right { get; }
 
   public override void Accept(IAstVisitor visitor)
   {

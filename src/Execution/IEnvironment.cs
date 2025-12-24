@@ -1,4 +1,6 @@
-﻿namespace Execution;
+﻿using Runtime;
+
+namespace Execution;
 
 /// <summary>
 /// Представляет окружение для выполнения программы.
@@ -6,7 +8,7 @@
 /// </summary>
 public interface IEnvironment
 {
-  public decimal ReadNumber();
+  public Value Read();
 
-  public void WriteNumber(decimal value);
+  public void Write(Value value);
 }

@@ -1,7 +1,7 @@
 ```cpy
 func calculate_discriminant:int(a:int, b:int, c:int)
 {
-    return b**2 - 4 * a * c;
+    return b** 2 - 4 * a * c;
 }
 
 func main:void()
@@ -10,18 +10,18 @@ func main:void()
     let b:float = input();
     let c:float = input();
 
-    if (a == 0) 
+    if (a == 0)
     {
-        if (b == 0) 
+        if (b == 0)
         {
             print(0);
-        } 
-        else 
-        { 
+        }
+        else
+        {
             print(1, - c / b);
         }
-    } 
-    else 
+    }
+    else
     {
         let d:float = calculate_discriminant(a, b, c);
 
@@ -31,7 +31,7 @@ func main:void()
         }
         elif (d == 0)
         {
-            let x:float = - b / (2 * a); 
+            let x:float = - b / (2 * a);
             /// x можно заменить на x1 для для проверки области видимости
             print(1, x);
         }

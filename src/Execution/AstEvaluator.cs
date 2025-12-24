@@ -4,19 +4,23 @@ using Ast.Expressions;
 
 using Execution.Exceptions;
 
+using Runtime;
+
+using ValueType = Runtime.ValueType;
+
 namespace Execution;
 
 public sealed class AstEvaluator : IAstVisitor
 {
   private readonly Context context;
-  private readonly Stack<decimal> values = new();
+  private readonly Stack<Value> values = new();
 
   public AstEvaluator(Context context)
   {
     this.context = context;
   }
 
-  public decimal Evaluate(AstNode node)
+  public Value Evaluate(AstNode node)
   {
     if (values.Count > 0)
     {
@@ -51,63 +55,132 @@ public sealed class AstEvaluator : IAstVisitor
 
   public void Visit(AssignmentExpression e)
   {
-    e.Value.Accept(this);
-    decimal value = values.Pop();
-    context.AssignVariable(e.Name, value);
+    e.Right.Accept(this);
+    Value value = values.Pop();
+
+    VariableExpression left = (VariableExpression)e.Left;
+
+    context.AssignVariable(left.Name, value);
     values.Push(value);
   }
 
   public void Visit(UnaryOperationExpression e)
   {
     e.Operand.Accept(this);
-    decimal v = values.Pop();
 
-    values.Push(e.Operation switch
+    Value operand = values.Pop();
+
+    switch (e.Operation)
     {
-      UnaryOperation.Plus => +v,
-      UnaryOperation.Minus => -v,
-      UnaryOperation.Not => v == 0 ? 1 : 0,
-      UnaryOperation.Increment => v + 1,
-      UnaryOperation.Decrement => v - 1,
-      _ => throw new NotImplementedException()
-    });
+      case UnaryOperation.Plus:
+        {
+          if (operand.IsInt())
+          {
+            values.Push(new Value(+operand.AsInt()));
+            return;
+          }
+
+          if (operand.IsFloat())
+          {
+            values.Push(new Value(+operand.AsFloat()));
+            return;
+          }
+
+          throw new InvalidOperationException($"Unary '+' is not applicable to {operand}");
+        }
+
+      case UnaryOperation.Minus:
+        {
+          if (operand.IsInt())
+          {
+            values.Push(new Value(-operand.AsInt()));
+            return;
+          }
+
+          if (operand.IsFloat())
+          {
+            values.Push(new Value(-operand.AsFloat()));
+            return;
+          }
+
+          throw new InvalidOperationException($"Unary '-' is not applicable to {operand}");
+        }
+
+      case UnaryOperation.Not:
+        {
+          bool result = operand switch
+          {
+            { } when operand.IsBool() => !operand.AsBool(),
+            { } when operand.IsInt() => operand.AsInt() == 0,
+            { } when operand.IsFloat() => Math.Abs(operand.AsFloat()) < 0.0001f,
+            { } when operand.IsString() => string.IsNullOrEmpty(operand.AsString()),
+            _ => throw new InvalidOperationException($"Unary 'not' is not applicable to {operand}")
+          };
+
+          values.Push(new Value(result));
+          return;
+        }
+
+      case UnaryOperation.Increment:
+        {
+          if (operand.IsInt())
+          {
+            values.Push(new Value(operand.AsInt() + 1));
+            return;
+          }
+
+          if (operand.IsFloat())
+          {
+            values.Push(new Value(operand.AsFloat() + 1));
+            return;
+          }
+
+          throw new InvalidOperationException($"Unary '++' is not applicable to {operand}");
+        }
+
+      case UnaryOperation.Decrement:
+        {
+          if (operand.IsInt())
+          {
+            values.Push(new Value(operand.AsInt() - 1));
+            return;
+          }
+
+          if (operand.IsFloat())
+          {
+            values.Push(new Value(operand.AsFloat() - 1));
+            return;
+          }
+
+          throw new InvalidOperationException($"Unary '--' is not applicable to {operand}");
+        }
+
+      default:
+        throw new NotImplementedException($"Unknown unary operation {e.Operation}");
+    }
   }
 
   public void Visit(BinaryOperationExpression e)
   {
-    e.Left.Accept(this);
-    e.Right.Accept(this);
+    values.Push(EvaluationUtil.ApplyBinaryOperation(e.Operation, EvaluateLeft, EvaluateRight));
 
-    decimal right = values.Pop();
-    decimal left = values.Pop();
-
-    values.Push(e.Operation switch
+    Value EvaluateLeft()
     {
-      BinaryOperation.Plus => left + right,
-      BinaryOperation.Minus => left - right,
-      BinaryOperation.Multiplication => left * right,
-      BinaryOperation.Division => right == 0 ? throw new DivideByZeroException() : left / right,
-      BinaryOperation.IntegerDivision => right == 0 ? throw new DivideByZeroException() : Math.Floor(left / right),
-      BinaryOperation.Remainder => right == 0 ? throw new DivideByZeroException() : left % right,
-      BinaryOperation.Exponentiation => (decimal)Math.Pow((double)left, (double)right),
+      e.Left.Accept(this);
+      return values.Pop();
+    }
 
-      BinaryOperation.And => (left != 0 && right != 0) ? 1 : 0,
-      BinaryOperation.Or => (left != 0 || right != 0) ? 1 : 0,
-
-      BinaryOperation.Equal => left == right ? 1 : 0,
-      BinaryOperation.NotEqual => left != right ? 1 : 0,
-      BinaryOperation.LessThan => left < right ? 1 : 0,
-      BinaryOperation.LessThanOrEqual => left <= right ? 1 : 0,
-      BinaryOperation.GreaterThan => left > right ? 1 : 0,
-      BinaryOperation.GreaterThanOrEqual => left >= right ? 1 : 0,
-
-      _ => throw new NotImplementedException()
-    });
+    Value EvaluateRight()
+    {
+      e.Right.Accept(this);
+      return values.Pop();
+    }
   }
 
   public void Visit(FunctionCallExpression e)
   {
-    List<decimal> args = new();
+    List<Value> args = new();
+    bool hasReturn = false;
 
     foreach (Expression arg in e.Arguments)
     {
@@ -123,21 +196,44 @@ public sealed class AstEvaluator : IAstVisitor
 
     FunctionDeclaration fn = context.GetFunction(e.Name);
 
+    bool hasReturnType = fn.DeclaredTypeName != null;
+
     context.PushScope(new Scope());
     try
     {
+      if (args.Count != fn.Parameters.Count)
+      {
+        throw new ArgumentException(
+          $"Function '{e.Name}' expects {fn.Parameters.Count} arguments, but got {args.Count}");
+      }
+
       for (int i = 0; i < fn.Parameters.Count; i++)
       {
-        context.DefineVariable(fn.Parameters[i], args[i]);
+        context.DefineVariable(fn.Parameters[i].Name, args[i]);
       }
 
       fn.Body.Accept(this);
       values.Pop();
-      values.Push(0);
+      values.Push(Value.Void);
+
+      if (!hasReturn && hasReturnType)
+      {
+        throw new InvalidOperationException("Function has to have a return statement in the end");
+      }
     }
     catch (ReturnException ret)
     {
-      values.Push(ret.Value ?? 0);
+      hasReturn = true;
+
+      if (ret.Value == null)
+      {
+        values.Push(Value.Void);
+        return;
+      }
+
+      ValueType getRetType = GetTypeByValue(ret.Value);
+
+      values.Push(ret.Value);
     }
     finally
     {
@@ -148,9 +244,8 @@ public sealed class AstEvaluator : IAstVisitor
   public void Visit(IfElseExpression e)
   {
     e.Condition.Accept(this);
-    decimal cond = values.Pop();
 
-    if (cond != 0)
+    if (values.Pop().AsBool())
     {
       e.ThenBranch.Accept(this);
     }
@@ -160,7 +255,7 @@ public sealed class AstEvaluator : IAstVisitor
     }
     else
     {
-      values.Push(0);
+      values.Push(Value.Void);
     }
   }
 
@@ -172,7 +267,7 @@ public sealed class AstEvaluator : IAstVisitor
       while (true)
       {
         e.Condition.Accept(this);
-        if (values.Pop() == 0)
+        if (!values.Pop().AsBool())
         {
           break;
         }
@@ -195,7 +290,7 @@ public sealed class AstEvaluator : IAstVisitor
       context.PopScope();
     }
 
-    values.Push(0);
+    values.Push(Value.Void);
   }
 
   public void Visit(ForLoopExpression e)
@@ -204,20 +299,20 @@ public sealed class AstEvaluator : IAstVisitor
     try
     {
       e.StartValue.Accept(this);
-      decimal it = values.Pop();
-      context.DefineVariable(e.IteratorName, it);
+      int it = values.Pop().AsInt();
+      context.DefineVariable(e.IteratorName, new Value(it));
 
-      decimal step = 1;
+      int step = 1;
       if (e.StepValue != null)
       {
         e.StepValue.Accept(this);
-        step = values.Pop();
+        step = values.Pop().AsInt();
       }
 
       while (true)
       {
         e.EndCondition.Accept(this);
-        if (values.Pop() == 0)
+        if (!values.Pop().AsBool())
         {
           break;
         }
@@ -232,7 +327,7 @@ public sealed class AstEvaluator : IAstVisitor
         }
 
         it += step;
-        context.AssignVariable(e.IteratorName, it);
+        context.AssignVariable(e.IteratorName, new Value(it));
       }
     }
     catch (BreakLoopException)
@@ -243,18 +338,20 @@ public sealed class AstEvaluator : IAstVisitor
       context.PopScope();
     }
 
-    values.Push(0);
+    values.Push(Value.Void);
   }
 
   public void Visit(SwitchExpression e)
   {
     e.Expression.Accept(this);
-    decimal expr = values.Pop();
+    Value expr = values.Pop();
 
     foreach (SwitchCase c in e.Cases)
     {
       c.Value.Accept(this);
-      if (values.Pop() == expr)
+      Value caseValue = values.Pop();
+
+      if (expr.Equals(caseValue))
       {
         try
         {
@@ -265,7 +362,7 @@ public sealed class AstEvaluator : IAstVisitor
         {
         }
 
-        values.Push(0);
+        values.Push(Value.Void);
         return;
       }
     }
@@ -276,12 +373,12 @@ public sealed class AstEvaluator : IAstVisitor
       values.Pop();
     }
 
-    values.Push(0);
+    values.Push(Value.Void);
   }
 
   public void Visit(SequenceExpression e)
   {
-    decimal last = 0;
+    Value last = new Value(0);
 
     foreach (Expression expr in e.Sequence)
     {
@@ -294,13 +391,13 @@ public sealed class AstEvaluator : IAstVisitor
 
   public void Visit(PrintExpression e)
   {
-    decimal last = 0;
+    Value last = new Value(0);
 
     foreach (Expression expr in e.Values)
     {
       expr.Accept(this);
       last = values.Pop();
-      context.Environment.WriteNumber(last);
+      context.Environment.Write(last);
     }
 
     values.Push(last);
@@ -308,7 +405,7 @@ public sealed class AstEvaluator : IAstVisitor
 
   public void Visit(ReturnExpression e)
   {
-    decimal value = 0;
+    Value? value = null;
     if (e.Value != null)
     {
       e.Value.Accept(this);
@@ -330,21 +427,21 @@ public sealed class AstEvaluator : IAstVisitor
 
   public void Visit(EmptyExpression e)
   {
-    values.Push(0);
+    values.Push(Value.Void);
   }
 
   public void Visit(DeclarationExpression e)
   {
     e.Declaration.Accept(this);
-    values.Push(0);
+    values.Push(Value.Void);
   }
 
   public void Visit(VariableDeclaration d)
   {
-    decimal value = 0;
-    if (d.Value != null)
+    Value value = Value.Void;
+    if (d.InitialValue != null)
     {
-      d.Value.Accept(this);
+      d.InitialValue.Accept(this);
       value = values.Pop();
     }
 
@@ -354,12 +451,30 @@ public sealed class AstEvaluator : IAstVisitor
   public void Visit(ConstantDeclaration d)
   {
     d.Value.Accept(this);
-    context.DefineConstant(d.Name, values.Pop());
+    Value val = values.Pop();
+    context.DefineConstant(d.Name, val);
   }
 
   public void Visit(FunctionDeclaration d)
   {
     context.DefineFunction(d);
-    values.Push(0);
+    values.Push(Value.Void);
+  }
+
+  public void Visit(ParameterDeclaration d)
+  {
+  }
+
+  private ValueType GetTypeByValue(Value value)
+  {
+    return value switch
+    {
+      { } when value.IsBool() => ValueType.Bool,
+      { } when value.IsFloat() => ValueType.Float,
+      { } when value.IsString() => ValueType.String,
+      { } when value.IsInt() => ValueType.Int,
+      { } when value == Value.Void => ValueType.Void,
+      _ => throw new NotImplementedException()
+    };
   }
 }

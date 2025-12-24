@@ -1,3 +1,5 @@
+using Runtime;
+
 namespace Execution.Exceptions;
 
 /// <summary>
@@ -6,11 +8,11 @@ namespace Execution.Exceptions;
 #pragma warning disable RCS1194 // Конструкторы исключения не нужны, т.к. это не класс общего назначения.
 internal class ReturnException : Exception
 {
-  public ReturnException(decimal? value)
+  public ReturnException(Value? value)
   {
     Value = value;
   }
 
-  public decimal? Value { get; }
+  public Value? Value { get; }
 }
 #pragma warning restore RCS1194

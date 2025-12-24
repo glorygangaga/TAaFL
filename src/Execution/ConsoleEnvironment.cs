@@ -1,15 +1,17 @@
 using System.Globalization;
 
+using Runtime;
+
 namespace Execution;
 
 public class ConsoleEnvironment : IEnvironment
 {
-  public void WriteNumber(decimal value)
+  public void Write(Value value)
   {
-    Console.WriteLine("Result: " + value.ToString("0.#####", CultureInfo.InvariantCulture));
+    Console.WriteLine("Result: " + value.ToString());
   }
 
-  public decimal ReadNumber()
+  public Value Read()
   {
     string? input = Console.ReadLine();
 
@@ -18,11 +20,21 @@ public class ConsoleEnvironment : IEnvironment
       throw new InvalidOperationException("Input is empty");
     }
 
-    if (!decimal.TryParse(input, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal number))
+    if (int.TryParse(input, NumberStyles.Integer, CultureInfo.InvariantCulture, out int intValue))
     {
-      throw new FormatException($"Invalid number format: '{input}'");
+      return new Value(intValue);
     }
 
-    return number;
+    if (float.TryParse(input, NumberStyles.Float, CultureInfo.InvariantCulture, out float floatValue))
+    {
+      return new Value(floatValue);
+    }
+
+    if (bool.TryParse(input, out bool boolValue))
+    {
+      return new Value(boolValue);
+    }
+
+    return new Value(input);
   }
 }

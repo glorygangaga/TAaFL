@@ -1,19 +1,32 @@
+using Ast.Attributes;
+
 using Ast.Expressions;
 
 namespace Ast.Declarations;
 
-public sealed class FunctionDeclaration : Declaration
+public sealed class FunctionDeclaration : AbstractFunctionDeclaration
 {
-  public FunctionDeclaration(string name, List<string> parameters, Expression body)
+  private AstAttribute<AbstractTypeDeclaration?> declaredType;
+
+  public FunctionDeclaration(
+        string name,
+        IReadOnlyList<ParameterDeclaration> parameters,
+        string? declaredTypeName,
+        Expression body
+    )
+        : base(name, parameters)
   {
-    Name = name;
-    Parameters = parameters;
+    DeclaredTypeName = declaredTypeName;
     Body = body;
   }
 
-  public string Name { get; }
+  public string? DeclaredTypeName { get; }
 
-  public List<string> Parameters { get; }
+  public AbstractTypeDeclaration? DeclaredType
+  {
+    get => declaredType.Get();
+    set => declaredType.Set(value);
+  }
 
   public Expression Body { get; }
 

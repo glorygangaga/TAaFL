@@ -33,6 +33,7 @@
 - [x] : Тест логического выражения : `1 and 2 or 0`
 - [x] : Тест логического OR в скобках : `(10 - 10) or (2 * 2)`
 - [x] : Тест тернарного оператора : `10 > 0 ? 10 : 0`
+- [x] : Тест конкатинацтя строк : `"Hello" + " world"`
 
 Функции
 
@@ -45,8 +46,35 @@
 - [x] : Тест функции round : `round(1.4);`
 - [x] : Тест вложенных min/max : `min(max(1, 5), min(10, 6));`
 - [x] : Тест min с множеством аргументов : `min(1, 2, 3, 4, 5);`
-- [x] : Тест max с множеством аргументов : `max(10, 9, 8, 7, 6);`
+- [x] : Тест max с аргмножествомументов : `max(10, 9, 8, 7, 6);`
 - [x] : Тест pow со стеком степеней : `pow(2, pow(2, 3));`
+- [x] : Тест length : `length("Hello");`
+- [x] : Тест substring : `substring("Hello", 1, 3);`
+- [x] : Тест contains : `contains("Hello", "ell");`
+- [x] : Тест startsWith : `startsWith("Hello", "He");`
+- [x] : Тест endsWith : `endsWith("Hello", "lo");`
+- [x] : Тест toLower : `toLower("Hello");`
+- [x] : Тест toUpper : `toUpper("Hello");`
+- [x] : Тест trim : `trim("  Hello  ");`
+- [x] : Тест indexOf : `indexOf("Hello", "l");`
+- [x] : Тест lastIndexOf : `lastIndexOf("Hello", "l");`
+- [x] : Тест replace : `replace("Hello", "l", "p");`
+- [x] : Тест печати строки : `print("Hello");`
+- [x] : Тест toString(int) : `toString(42);`
+- [x] : Тест toString(float) : `toString(3.14);`
+- [x] : Тест toString(bool) : `toString(true);`
+- [x] : Тест toInt(string) : `toInt("123");`
+- [x] : Тест toInt(float) : `toInt(3.99);`
+- [x] : Тест toFloat(string) : `toFloat("3.14");`
+- [x] : Тест toFloat(int) : `toFloat(5);`
+- [x] : Тест toBool(string) : `toBool("true");`
+- [x] : Тест toBool(1) : `toBool(1);`
+- [x] : Тест toBool(0) : `toBool(0);`
+- [x] : Тест isInt(string) : `isInt("123");`
+- [x] : Тест isInt(int) : `isInt(123);`
+- [x] : Тест isFloat : `isFloat(3.14);`
+- [x] : Тест isBool : `isBool(true);`
+- [x] : Тест isStr : `isStr("text");`
 
 Программы
 
@@ -57,6 +85,11 @@
 
 Программы с ошибками
 
-- [x] : Ошибка — объявление переменной без точки с запятой : `let value: int = 0`
-- [x] : Ошибка — точка с запятой внутри объявления const : `const max: int = 0;`
-- [x] : Ошибка — const без инициализации : `const value: int;`
+- [x] : Ошибка - объявление переменной без точки с запятой : `let value: int = 0`
+- [x] : Ошибка - точка с запятой внутри объявления const : `const max: int = 0;`
+- [x] : Ошибка - const без инициализации : `const value: int;`
+- [x] : Ошибка - void в данных : `const element: void = 0;`
+- [x] : Ошибка - ввод не того типа данных : `const i: str = 1.0;`
+- [x] : Ошибка - ф-ия не возвращает int : `func nothing:int() {} nothing();`
+- [x] : Ошибка - ф-ия возвращает другой тип данных : `func nothing:int() { return 1.3; } nothing();`
+- [x] : Ошибка - ф-ия получает другой тип данных в параметр : `func nothing:int(a: str) {} nothing(1);`

@@ -1,5 +1,7 @@
 using Execution;
 
+using Runtime;
+
 namespace Parser;
 
 /// <summary>
@@ -7,18 +9,18 @@ namespace Parser;
 /// </summary>
 public class FakeEnvironment : IEnvironment
 {
-  private readonly List<decimal> results = [];
+  private readonly List<Value> results = [];
 
-  public IReadOnlyList<decimal> Results => results;
+  public IReadOnlyList<Value> Results => results;
 
-  public void WriteNumber(decimal result)
+  public void Write(Value result)
   {
     results.Add(result);
   }
 
-  public decimal ReadNumber()
+  public Value Read()
   {
-    decimal number = results.Last();
+    Value number = results.Last();
     results.RemoveAt(results.Count - 1);
     return number;
   }
