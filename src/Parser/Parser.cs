@@ -730,7 +730,7 @@ public class Parser
 
   /// <summary>
   /// парсинг основного выражения
-  /// primary_expr = identifier | literal | boolean | constant | input_expr | print_expr | "(", expression, ")" ;.
+  /// primary_expr = identifier | literal | boolean | constant  | input_expr | print_expr | "(", expression, ")" ;.
   /// </summary>
   private Expression ParsePrimaryExpr()
   {
