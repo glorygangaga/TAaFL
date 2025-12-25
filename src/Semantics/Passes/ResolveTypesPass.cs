@@ -229,7 +229,6 @@ public sealed class ResolveTypesPass : AbstractPass
         }
 
         return null;
-
       case BinaryOperation.Exponentiation:
       case BinaryOperation.Remainder:
         if (left == ValueType.Int && right == ValueType.Int)
@@ -262,13 +261,12 @@ public sealed class ResolveTypesPass : AbstractPass
         return null;
       case BinaryOperation.Equal:
       case BinaryOperation.NotEqual:
-        if (ValueTypeUtil.AreCompatibleTypes(left, right) && !(left == ValueType.Void && right == ValueType.Void))
+        if (left == right && !(left == ValueType.Void && right == ValueType.Void))
         {
           return ValueType.Bool;
         }
 
         return null;
-
       default:
         throw new InvalidOperationException($"Unknown binary operation {operation}");
     }

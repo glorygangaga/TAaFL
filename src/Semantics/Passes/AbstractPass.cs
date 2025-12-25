@@ -72,10 +72,7 @@ public abstract class AbstractPass : IAstVisitor
 
   public virtual void Visit(VariableDeclaration d)
   {
-    if (d.InitialValue != null)
-    {
-      d.InitialValue.Accept(this);
-    }
+    d.InitialValue!.Accept(this);
   }
 
   public virtual void Visit(FunctionDeclaration d)

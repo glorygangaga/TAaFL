@@ -121,6 +121,8 @@ public static class EvaluationUtil
     {
       left = leftValue.AsInt();
       right = rightValue.AsInt();
+      int resultVal = (int)operation(left, right);
+      return new Value(resultVal);
     }
     else if ((leftValue.IsInt() || leftValue.IsFloat()) && (rightValue.IsInt() || rightValue.IsFloat()))
     {

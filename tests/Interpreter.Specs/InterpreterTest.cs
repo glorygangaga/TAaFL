@@ -306,7 +306,7 @@ public class InterpreterTest
         { "print(10 % 2);", new List<string> { "0" } },
         { "print(1.128 - 8 + 7.5);", new List<string> { "0.628" } },
         { "print(2 ** 5);", new List<string> { "32" } },
-        { "print((2 + 3) / 10);", new List<string> { "0.5" } },
+        { "print((2 + 3) / 10);", new List<string> { "0" } },
         { "print((-2) ** 10);", new List<string> { "1024" } },
         { "print(-2 ** 10);", new List<string> { "-1024" } },
         { "print(--5);", new List<string> { "4" } },
@@ -392,8 +392,8 @@ public class InterpreterTest
                 @"
                 func main:void()
                 {
-                  const _r: int = 10;
-                  print(Pi * pow(_r, 2));
+                  const _r: float = 10.0;
+                  print(Pi * pow(_r, 2.0));
                 }
                 ", new List<string> { "314.15927" }
             },

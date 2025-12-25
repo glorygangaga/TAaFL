@@ -14,7 +14,6 @@ public sealed class BuiltinFunctions
     { "ceil", Ceil },
     { "floor", Floor },
     { "length", Length },
-    { "substring", Substring },
     { "contains", Contains },
     { "startsWith", StartsWith },
     { "endsWith", EndsWith },
@@ -149,12 +148,6 @@ public sealed class BuiltinFunctions
   {
     ExpectCount(args, 1, "length");
     return new Value(args[0].AsString().Length);
-  }
-
-  private static Value Substring(List<Value> args)
-  {
-    ExpectCount(args, 3, "substring");
-    return new Value(args[0].AsString().Substring(args[1].AsInt(), args[2].AsInt()));
   }
 
   private static Value Contains(List<Value> args)

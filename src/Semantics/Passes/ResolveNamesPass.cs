@@ -2,10 +2,7 @@ using Ast.Declarations;
 using Ast.Expressions;
 
 using Semantics.Exceptions;
-using Semantics.Helpers;
 using Semantics.Symbols;
-
-using ValueType = Runtime.ValueType;
 
 namespace Semantics.Passes;
 

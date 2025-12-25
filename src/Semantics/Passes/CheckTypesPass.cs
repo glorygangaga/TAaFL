@@ -34,15 +34,37 @@ public class CheckTypesPass : AbstractPass
     base.Visit(d);
 
     ValueType inferredType = d.InitialValue!.ResultType;
-    if (inferredType == ValueType.Void)
-    {
-      throw new TypeErrorException("Cannot initialize variable from expression without value");
-    }
 
-    if (d.DeclaredType != null && !ValueTypeUtil.AreCompatibleTypes(d.DeclaredType.ResultType, inferredType))
+    if (d.DeclaredType != null && d.DeclaredType.ResultType != inferredType && inferredType != ValueType.Void)
     {
       throw new TypeErrorException(
           $"Cannot initialize variable of type {d.DeclaredTypeName} with value of type {inferredType}"
+      );
+    }
+
+    if (d.DeclaredType == null && inferredType == ValueType.Void)
+    {
+      throw new TypeErrorException(
+          $"Variable {d.Name} type cannot be inferred from nil"
+      );
+    }
+  }
+
+  public override void Visit(ConstantDeclaration d)
+  {
+    base.Visit(d);
+
+    ValueType inferredType = d.Value.ResultType;
+
+    if (inferredType == ValueType.Void)
+    {
+      throw new TypeErrorException("Cannot initialize Const from expression without value");
+    }
+
+    if (d.DeclaredType != null && d.DeclaredType.ResultType != inferredType && inferredType != ValueType.Void)
+    {
+      throw new TypeErrorException(
+          $"Cannot initialize Const of type {d.DeclaredTypeName} with value of type {inferredType}"
       );
     }
 
@@ -58,7 +80,7 @@ public class CheckTypesPass : AbstractPass
   {
     base.Visit(e);
 
-    if (!ValueTypeUtil.AreCompatibleTypes(e.Left.ResultType, e.Right.ResultType))
+    if (e.Left.ResultType != e.Right.ResultType)
     {
       throw new TypeErrorException(
           $"Cannot assign value of type {e.Right.ResultType} to variable of type {e.Left.ResultType}"
@@ -109,7 +131,7 @@ public class CheckTypesPass : AbstractPass
     {
       Expression argument = e.Arguments[i];
       AbstractParameterDeclaration parameter = function.Parameters[i];
-      if (!ValueTypeUtil.AreCompatibleTypes(argument.ResultType, parameter.ResultType))
+      if (argument.ResultType != parameter.ResultType)
       {
         throw new TypeErrorException(
             $"Cannot apply argument #{i} of type {argument.ResultType} to function {e.Name} parameter {parameter.Name} which has type {parameter.ResultType}"
@@ -120,7 +142,7 @@ public class CheckTypesPass : AbstractPass
 
   private static void CheckAreSameTypes(string category, Expression expression, ValueType expectedType)
   {
-    if (!ValueTypeUtil.AreCompatibleTypes(expression.ResultType, expectedType))
+    if (expression.ResultType != expectedType)
     {
       throw new TypeErrorException(category, expectedType, expression.ResultType);
     }
@@ -128,7 +150,7 @@ public class CheckTypesPass : AbstractPass
 
   private static void CheckAreCompatibleTypes(string category, Expression expression, ValueType expectedType)
   {
-    if (!ValueTypeUtil.AreCompatibleTypes(expression.ResultType, expectedType))
+    if (expression.ResultType != expectedType)
     {
       throw new TypeErrorException(category, expectedType, expression.ResultType);
     }
