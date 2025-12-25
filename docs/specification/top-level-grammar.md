@@ -180,16 +180,7 @@ while_statement =
 "while", "(", expression, ")", block ;
 
 for_statement =
-"for", "(", for_init, [ expression ], ";", [ for_update ], ")", block ;
-
-for_init =
-variable_declaration
-| expression_statement
-| empty_statement  ;
-
-for_update =
-expression
-| empty_statement ;
+"for", "(", variable_declaration, expression, ";",  expression , ")", block ;
 
 break_statement = "break", ";" ;
 
