@@ -13,6 +13,8 @@ public sealed class FunctionCallExpression : Expression
     Arguments = arguments;
   }
 
+  public IReadOnlyList<AbstractFunctionDeclaration>? FunctionOverloads { get; set; }
+
   public string Name { get; }
 
   public AbstractFunctionDeclaration Function

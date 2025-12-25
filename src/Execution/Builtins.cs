@@ -19,9 +19,21 @@ public class Builtins
         args => BuiltinFunctions.Instance.Invoke("abs", args)
       ),
 
+      new("abs",
+        [ new("x", ValueType.Int)],
+        ValueType.Int,
+        args => BuiltinFunctions.Instance.Invoke("abs", args)
+      ),
+
       new("min",
         [ new("x", ValueType.Float), new("y", ValueType.Float)],
         ValueType.Float,
+        args => BuiltinFunctions.Instance.Invoke("min", args)
+      ),
+
+      new("min",
+        [ new("x", ValueType.Int), new("y", ValueType.Int)],
+        ValueType.Int,
         args => BuiltinFunctions.Instance.Invoke("min", args)
       ),
 
@@ -31,8 +43,20 @@ public class Builtins
         args => BuiltinFunctions.Instance.Invoke("max", args)
       ),
 
+      new("max",
+        [ new("x", ValueType.Int), new("y", ValueType.Int)],
+        ValueType.Int,
+        args => BuiltinFunctions.Instance.Invoke("max", args)
+      ),
+
       new("pow",
         [ new("a", ValueType.Float), new("b", ValueType.Float)],
+        ValueType.Float,
+        args => BuiltinFunctions.Instance.Invoke("pow", args)
+      ),
+
+      new("pow",
+        [ new("a", ValueType.Int), new("b", ValueType.Int)],
         ValueType.Float,
         args => BuiltinFunctions.Instance.Invoke("pow", args)
       ),
@@ -43,8 +67,20 @@ public class Builtins
         args => BuiltinFunctions.Instance.Invoke("round", args)
       ),
 
+      new("round",
+        [ new("x", ValueType.Int)],
+        ValueType.Float,
+        args => BuiltinFunctions.Instance.Invoke("round", args)
+      ),
+
       new("ceil",
         [ new("x", ValueType.Float)],
+        ValueType.Float,
+        args => BuiltinFunctions.Instance.Invoke("ceil", args)
+      ),
+
+      new("ceil",
+        [ new("x", ValueType.Int)],
         ValueType.Float,
         args => BuiltinFunctions.Instance.Invoke("ceil", args)
       ),
@@ -55,16 +91,16 @@ public class Builtins
         args => BuiltinFunctions.Instance.Invoke("floor", args)
       ),
 
+      new("floor",
+        [ new("x", ValueType.Int)],
+        ValueType.Float,
+        args => BuiltinFunctions.Instance.Invoke("floor", args)
+      ),
+
       new("length",
         [ new("s", ValueType.String)],
         ValueType.Int,
         args => BuiltinFunctions.Instance.Invoke("length", args)
-      ),
-
-      new("substring",
-        [new("s", ValueType.String), new("start", ValueType.Int), new("len", ValueType.Int)],
-        ValueType.String,
-        args => BuiltinFunctions.Instance.Invoke("substring", args)
       ),
 
       new("contains",
@@ -127,8 +163,44 @@ public class Builtins
         args => BuiltinFunctions.Instance.Invoke("toString", args)
       ),
 
+      new("toString",
+        [ new("x", ValueType.Int)],
+        ValueType.String,
+        args => BuiltinFunctions.Instance.Invoke("toString", args)
+      ),
+
+      new("toString",
+        [ new("x", ValueType.Float)],
+        ValueType.String,
+        args => BuiltinFunctions.Instance.Invoke("toString", args)
+      ),
+
+      new("toString",
+        [ new("x", ValueType.Bool)],
+        ValueType.String,
+        args => BuiltinFunctions.Instance.Invoke("toString", args)
+      ),
+
       new("toInt",
         [ new("x", ValueType.Int)],
+        ValueType.Int,
+        args => BuiltinFunctions.Instance.Invoke("toInt", args)
+      ),
+
+      new("toInt",
+        [ new("x", ValueType.Float)],
+        ValueType.Int,
+        args => BuiltinFunctions.Instance.Invoke("toInt", args)
+      ),
+
+      new("toInt",
+        [ new("x", ValueType.Bool)],
+        ValueType.Int,
+        args => BuiltinFunctions.Instance.Invoke("toInt", args)
+      ),
+
+      new("toInt",
+        [ new("x", ValueType.String)],
         ValueType.Int,
         args => BuiltinFunctions.Instance.Invoke("toInt", args)
       ),
@@ -139,14 +211,68 @@ public class Builtins
         args => BuiltinFunctions.Instance.Invoke("toFloat", args)
       ),
 
+      new("toFloat",
+        [ new("x", ValueType.Int)],
+        ValueType.Float,
+        args => BuiltinFunctions.Instance.Invoke("toFloat", args)
+      ),
+
+      new("toFloat",
+        [ new("x", ValueType.String)],
+        ValueType.Float,
+        args => BuiltinFunctions.Instance.Invoke("toFloat", args)
+      ),
+
+      new("toFloat",
+        [ new("x", ValueType.Bool)],
+        ValueType.Float,
+        args => BuiltinFunctions.Instance.Invoke("toFloat", args)
+      ),
+
       new("toBool",
         [ new("x", ValueType.Bool)],
         ValueType.Bool,
         args => BuiltinFunctions.Instance.Invoke("toBool", args)
       ),
 
+      new("toBool",
+        [ new("x", ValueType.Int)],
+        ValueType.Bool,
+        args => BuiltinFunctions.Instance.Invoke("toBool", args)
+      ),
+
+      new("toBool",
+        [ new("x", ValueType.String)],
+        ValueType.Bool,
+        args => BuiltinFunctions.Instance.Invoke("toBool", args)
+      ),
+
+      new("toBool",
+        [ new("x", ValueType.Float)],
+        ValueType.Bool,
+        args => BuiltinFunctions.Instance.Invoke("toBool", args)
+      ),
+
+      new("isInt",
+        [ new("x", ValueType.Int)],
+        ValueType.Bool,
+        args => BuiltinFunctions.Instance.Invoke("isInt", args)
+      ),
+
+      new("isInt",
+        [ new("x", ValueType.Float)],
+        ValueType.Bool,
+        args => BuiltinFunctions.Instance.Invoke("isInt", args)
+      ),
+
       new("isInt",
         [ new("x", ValueType.Bool)],
+        ValueType.Bool,
+        args => BuiltinFunctions.Instance.Invoke("isInt", args)
+      ),
+
+      new("isInt",
+        [ new("x", ValueType.String)],
         ValueType.Bool,
         args => BuiltinFunctions.Instance.Invoke("isInt", args)
       ),
@@ -157,14 +283,68 @@ public class Builtins
         args => BuiltinFunctions.Instance.Invoke("isFloat", args)
       ),
 
+      new("isFloat",
+        [ new("x", ValueType.Bool)],
+        ValueType.Bool,
+        args => BuiltinFunctions.Instance.Invoke("isFloat", args)
+      ),
+
+      new("isFloat",
+        [ new("x", ValueType.String)],
+        ValueType.Bool,
+        args => BuiltinFunctions.Instance.Invoke("isFloat", args)
+      ),
+
+      new("isFloat",
+        [ new("x", ValueType.Int)],
+        ValueType.Bool,
+        args => BuiltinFunctions.Instance.Invoke("isFloat", args)
+      ),
+
       new("isBool",
         [ new("x", ValueType.Bool)],
         ValueType.Bool,
         args => BuiltinFunctions.Instance.Invoke("isBool", args)
       ),
 
+      new("isBool",
+        [ new("x", ValueType.String)],
+        ValueType.Bool,
+        args => BuiltinFunctions.Instance.Invoke("isBool", args)
+      ),
+
+      new("isBool",
+        [ new("x", ValueType.Int)],
+        ValueType.Bool,
+        args => BuiltinFunctions.Instance.Invoke("isBool", args)
+      ),
+
+      new("isBool",
+        [ new("x", ValueType.Float)],
+        ValueType.Bool,
+        args => BuiltinFunctions.Instance.Invoke("isBool", args)
+      ),
+
       new("isStr",
         [ new("x", ValueType.String)],
+        ValueType.Bool,
+        args => BuiltinFunctions.Instance.Invoke("isStr", args)
+      ),
+
+      new("isStr",
+        [ new("x", ValueType.Bool)],
+        ValueType.Bool,
+        args => BuiltinFunctions.Instance.Invoke("isStr", args)
+      ),
+
+      new("isStr",
+        [ new("x", ValueType.Int)],
+        ValueType.Bool,
+        args => BuiltinFunctions.Instance.Invoke("isStr", args)
+      ),
+
+      new("isStr",
+        [ new("x", ValueType.Float)],
         ValueType.Bool,
         args => BuiltinFunctions.Instance.Invoke("isStr", args)
       ),

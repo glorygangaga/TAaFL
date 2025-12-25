@@ -37,11 +37,15 @@ public sealed class CheckContextSensitiveRulesPass : AbstractPass
   {
     base.Visit(e);
 
-    if (e.Arguments.Count != e.Function.Parameters.Count)
+    if (e.FunctionOverloads != null && e.FunctionOverloads.Count > 0)
     {
-      throw new InvalidFunctionCallException(
-          $"Function {e.Name} requires {e.Function.Parameters.Count} arguments, got {e.Arguments.Count}"
-      );
+      bool hasMatchingCount = e.FunctionOverloads.Any(f => f.Parameters.Count == e.Arguments.Count);
+      if (!hasMatchingCount)
+      {
+        throw new InvalidFunctionCallException(
+            $"Function {e.Name} requires {string.Join("/", e.FunctionOverloads.Select(f => f.Parameters.Count))} arguments, got {e.Arguments.Count}"
+        );
+      }
     }
   }
 
@@ -75,19 +79,6 @@ public sealed class CheckContextSensitiveRulesPass : AbstractPass
   public override void Visit(ForLoopExpression e)
   {
     // Меняем текущий контекст: дочерние узлы AST находятся внутри цикла.
-    expressionContextStack.Push(ExpressionContext.InsideLoop);
-    try
-    {
-      base.Visit(e);
-    }
-    finally
-    {
-      expressionContextStack.Pop();
-    }
-  }
-
-  public override void Visit(SwitchExpression e)
-  {
     expressionContextStack.Push(ExpressionContext.InsideLoop);
     try
     {

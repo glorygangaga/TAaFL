@@ -109,19 +109,6 @@ public abstract class AbstractPass : IAstVisitor
     }
   }
 
-  public virtual void Visit(SwitchExpression e)
-  {
-    e.Expression.Accept(this);
-
-    foreach (SwitchCase c in e.Cases)
-    {
-      c.Value.Accept(this);
-      c.Body.Accept(this);
-    }
-
-    e.DefaultCase?.Accept(this);
-  }
-
   public virtual void Visit(ContinueLoopExpression e)
   {
   }
@@ -146,5 +133,13 @@ public abstract class AbstractPass : IAstVisitor
   public virtual void Visit(ConstantDeclaration d)
   {
     d.Value.Accept(this);
+  }
+
+  public virtual void Visit(BlockStatement s)
+  {
+    foreach (AstNode nested in s.Statements)
+    {
+      nested.Accept(this);
+    }
   }
 }

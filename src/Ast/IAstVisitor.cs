@@ -29,8 +29,6 @@ public interface IAstVisitor
 
   void Visit(BreakLoopExpression e);
 
-  void Visit(SwitchExpression e);
-
   void Visit(ContinueLoopExpression e);
 
   void Visit(ReturnExpression e);
@@ -46,4 +44,6 @@ public interface IAstVisitor
   public void Visit(VariableDeclaration d);
 
   public void Visit(ParameterDeclaration d);
+
+  public void Visit(BlockStatement s);
 }

@@ -38,21 +38,21 @@ public class Parser
   /// <summary>
   /// program = { top_level_declaration }, main_function ;.
   /// </summary>
-  public Expression ParseProgram()
+  public BlockStatement ParseProgram()
   {
-    List<Expression> expressions = new();
+    List<AstNode> expressions = new();
 
     while (IsTopLevelDeclaration() && tokens.Peek().Type != TokenType.EndOfFile)
     {
-      expressions.Add((Expression)ParseTopLevelDeclaration());
+      expressions.Add(ParseTopLevelDeclaration());
     }
 
     if (!IsTopLevelDeclaration())
     {
-      expressions.Add((Expression)ParseMainFunction());
+      expressions.Add(ParseMainFunction());
     }
 
-    return new SequenceExpression(expressions);
+    return new BlockStatement(expressions);
   }
 
   private bool IsTopLevelDeclaration()
@@ -117,7 +117,7 @@ public class Parser
 
   /// <summary>
   /// statement = expression_statement | assignment_statement | value_declaration | block | input_statement | print_statement
-  /// | if_statement | while_statement | for_statement | switch_statement | break_statement |
+  /// | if_statement | while_statement | for_statement | break_statement |
   /// continue_statement | return_statement | empty_statement ;.
   /// </summary>
   private Expression ParseStatement()
@@ -142,8 +142,6 @@ public class Parser
         return ParseBreakExpr();
       case TokenType.Continue:
         return ParseContinueExpr();
-      case TokenType.Switch:
-        return ParseSwitchExpr();
       case TokenType.Identifier:
         string name = tokens.Peek().Value!.ToString();
         tokens.Advance();
@@ -185,43 +183,6 @@ public class Parser
         Match(TokenType.Semicolon);
         return expression;
     }
-  }
-
-  /// <summary>
-  /// switch_statement = "switch", "(", expression, ")", "{", { case_clause }, [ default_clause ],"}" ;
-  /// case_clause = "case", expression, ":", { statement } ;
-  /// default_clause = "default", ":", { statement } ;.
-  /// </summary>
-  private Expression ParseSwitchExpr()
-  {
-    Match(TokenType.Switch);
-    Match(TokenType.OpenParenthesis);
-    Expression expr = ParseExpr();
-    Match(TokenType.CloseParenthesis);
-
-    Match(TokenType.OpenCurlyBrace);
-
-    List<SwitchCase> cases = [];
-    while (tokens.Peek().Type == TokenType.Case)
-    {
-      tokens.Advance();
-      Expression value = ParseExpr();
-      Match(TokenType.ColonTypeIndication);
-      Expression body = ParseStatement();
-      cases.Add(new SwitchCase(value, body));
-    }
-
-    Expression? defaultCase = null;
-    if (tokens.Peek().Type == TokenType.Default)
-    {
-      tokens.Advance();
-      Match(TokenType.ColonTypeIndication);
-      defaultCase = ParseStatement();
-    }
-
-    Match(TokenType.CloseCurlyBracket);
-
-    return new SwitchExpression(expr, cases, defaultCase);
   }
 
   /// <summary>
@@ -769,7 +730,7 @@ public class Parser
 
   /// <summary>
   /// парсинг основного выражения
-  /// primary_expr = identifier | literal | boolean | constant | array_literal | struct_literal | input_expr | print_expr | "(", expression, ")" ;.
+  /// primary_expr = identifier | literal | boolean | constant | input_expr | print_expr | "(", expression, ")" ;.
   /// </summary>
   private Expression ParsePrimaryExpr()
   {

@@ -27,7 +27,7 @@ public class Interpreter
     }
 
     Parser.Parser parser = new(environment, code);
-    Expression program = parser.ParseProgram();
+    BlockStatement program = parser.ParseProgram();
 
     SemanticsChecker checker = new(builtins.Functions, builtins.Types);
     checker.Check(program);

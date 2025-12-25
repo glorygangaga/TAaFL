@@ -95,7 +95,6 @@ public class CheckTypesPass : AbstractPass
   {
     base.Visit(e);
 
-    CheckAreSameTypes("for loop start value", e.StartValue, ValueType.Int);
     CheckAreSameTypes("for loop end value", e.EndCondition, ValueType.Int);
     CheckAreSameTypes("for loop body", e.Body, ValueType.Void);
   }

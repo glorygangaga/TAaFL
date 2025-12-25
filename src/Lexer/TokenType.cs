@@ -223,16 +223,6 @@ public enum TokenType
   Main,
 
   /// <summary>
-  /// Оператор switch
-  /// </summary>
-  Switch,
-
-  /// <summary>
-  /// Оператор switch
-  /// </summary>
-  Case,
-
-  /// <summary>
   /// Оператор Default
   /// </summary>
   Default,

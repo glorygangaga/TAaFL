@@ -341,41 +341,6 @@ public sealed class AstEvaluator : IAstVisitor
     values.Push(Value.Void);
   }
 
-  public void Visit(SwitchExpression e)
-  {
-    e.Expression.Accept(this);
-    Value expr = values.Pop();
-
-    foreach (SwitchCase c in e.Cases)
-    {
-      c.Value.Accept(this);
-      Value caseValue = values.Pop();
-
-      if (expr.Equals(caseValue))
-      {
-        try
-        {
-          c.Body.Accept(this);
-          values.Pop();
-        }
-        catch (BreakLoopException)
-        {
-        }
-
-        values.Push(Value.Void);
-        return;
-      }
-    }
-
-    if (e.DefaultCase != null)
-    {
-      e.DefaultCase.Accept(this);
-      values.Pop();
-    }
-
-    values.Push(Value.Void);
-  }
-
   public void Visit(SequenceExpression e)
   {
     Value last = new Value(0);
@@ -463,6 +428,25 @@ public sealed class AstEvaluator : IAstVisitor
 
   public void Visit(ParameterDeclaration d)
   {
+  }
+
+  public void Visit(BlockStatement s)
+  {
+    values.Push(Value.Void);
+    context.PushScope(new Scope());
+
+    try
+    {
+      foreach (AstNode node in s.Statements)
+      {
+        values.Pop();
+        node.Accept(this);
+      }
+    }
+    finally
+    {
+      context.PopScope();
+    }
   }
 
   private ValueType GetTypeByValue(Value value)

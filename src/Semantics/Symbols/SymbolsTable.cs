@@ -4,6 +4,8 @@ using Ast.Declarations;
 
 using Semantics.Exceptions;
 
+using ValueType = Runtime.ValueType;
+
 namespace Semantics.Symbols;
 
 /// <summary>
@@ -13,13 +15,15 @@ public sealed class SymbolsTable
 {
   private readonly SymbolsTable? parent;
 
-  private readonly Dictionary<string, Declaration> variablesAndFunctions;
-  private readonly Dictionary<string, Declaration> types;
+  private readonly Dictionary<string, AbstractVariableDeclaration> variables;
+  private readonly Dictionary<string, List<AbstractFunctionDeclaration>> functions;
+  private readonly Dictionary<string, AbstractTypeDeclaration> types;
 
   public SymbolsTable(SymbolsTable? parent)
   {
     this.parent = parent;
-    variablesAndFunctions = [];
+    variables = [];
+    functions = [];
     types = [];
   }
 
@@ -27,42 +31,48 @@ public sealed class SymbolsTable
 
   public AbstractVariableDeclaration GetVariableDeclaration(string name)
   {
-    Declaration? declaration = FindDeclaration(table => table.variablesAndFunctions, name);
-    return declaration switch
+    if (variables.TryGetValue(name, out AbstractVariableDeclaration? variable))
     {
-      AbstractVariableDeclaration variable => variable,
-      AbstractFunctionDeclaration _ => throw new InvalidSymbolException(name, "function", "variable"),
-      null => throw UnknownSymbolException.UndefinedVariableOrFunction(name),
-      _ => throw new UnreachableException(),
-    };
+      return variable;
+    }
+
+    return parent?.GetVariableDeclaration(name)
+      ?? throw UnknownSymbolException.UndefinedVariableOrFunction(name);
   }
 
-  public AbstractFunctionDeclaration GetFunctionDeclaration(string name)
+  public AbstractFunctionDeclaration GetFunctionDeclaration(
+  string name,
+  IReadOnlyList<ValueType> argumentTypes)
   {
-    Declaration? declaration = FindDeclaration(table => table.variablesAndFunctions, name);
-    return declaration switch
+    if (functions.TryGetValue(name, out List<AbstractFunctionDeclaration>? overloads))
     {
-      AbstractFunctionDeclaration function => function,
-      AbstractVariableDeclaration _ => throw new InvalidSymbolException(name, "function", "variable"),
-      null => throw UnknownSymbolException.UndefinedVariableOrFunction(name),
-      _ => throw new UnreachableException(),
-    };
+      foreach (AbstractFunctionDeclaration f in overloads)
+      {
+        if (f.Parameters.Select(p => p.ResultType).SequenceEqual(argumentTypes))
+        {
+          return f;
+        }
+      }
+    }
+
+    return parent?.GetFunctionDeclaration(name, argumentTypes)
+      ?? throw new InvalidSymbolException(name, "function", "variable");
   }
 
   public AbstractTypeDeclaration GetTypeDeclaration(string name)
   {
-    Declaration? declaration = FindDeclaration(table => table.types, name);
-    if (declaration is null)
+    if (types.TryGetValue(name, out AbstractTypeDeclaration? type))
     {
-      throw UnknownSymbolException.UndefinedType(name);
+      return type;
     }
 
-    return (AbstractTypeDeclaration)declaration;
+    return parent?.GetTypeDeclaration(name)
+      ?? throw UnknownSymbolException.UndefinedType(name);
   }
 
   public void DeclareVariable(AbstractVariableDeclaration symbol)
   {
-    if (!variablesAndFunctions.TryAdd(symbol.Name, symbol))
+    if (!variables.TryAdd(symbol.Name, symbol))
     {
       throw DuplicateSymbolException.DuplicateVariableOrFunction(symbol.Name);
     }
@@ -70,10 +80,23 @@ public sealed class SymbolsTable
 
   public void DeclareFunction(AbstractFunctionDeclaration symbol)
   {
-    if (!variablesAndFunctions.TryAdd(symbol.Name, symbol))
+    if (!functions.TryGetValue(symbol.Name, out List<AbstractFunctionDeclaration>? overloads))
     {
-      throw DuplicateSymbolException.DuplicateVariableOrFunction(symbol.Name);
+      overloads = new List<AbstractFunctionDeclaration>();
+      functions[symbol.Name] = overloads;
     }
+
+    bool duplicate = overloads.Any(f =>
+      f.Parameters.Select(p => p.ResultType)
+        .SequenceEqual(symbol.Parameters.Select(p => p.ResultType)));
+
+    if (duplicate)
+    {
+      throw DuplicateSymbolException.DuplicateVariableOrFunction(
+        $"{symbol.Name}({string.Join(",", symbol.Parameters.Select(p => p.ResultType))})");
+    }
+
+    overloads.Add(symbol);
   }
 
   public void DeclareType(AbstractTypeDeclaration symbol)
@@ -84,13 +107,13 @@ public sealed class SymbolsTable
     }
   }
 
-  private Declaration? FindDeclaration(Func<SymbolsTable, Dictionary<string, Declaration>> getTable, string name)
+  public IReadOnlyList<AbstractFunctionDeclaration> GetFunctionOverloads(string name)
   {
-    if (getTable(this).TryGetValue(name, out Declaration? declaration))
+    if (functions.TryGetValue(name, out List<AbstractFunctionDeclaration>? overloads))
     {
-      return declaration;
+      return overloads;
     }
 
-    return parent?.FindDeclaration(getTable, name);
+    return parent?.GetFunctionOverloads(name) ?? Array.Empty<AbstractFunctionDeclaration>();
   }
 }

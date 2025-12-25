@@ -45,6 +45,19 @@ public sealed class ResolveTypesPass : AbstractPass
     e.ResultType = resultType;
   }
 
+  public override void Visit(UnaryOperationExpression e)
+  {
+    base.Visit(e);
+
+    ValueType valueType = e.Operand.ResultType;
+    if (valueType != ValueType.Int && valueType != ValueType.Float && valueType != ValueType.Bool)
+    {
+      throw new TypeErrorException($"Unary operation is not allowed for type {valueType}");
+    }
+
+    e.ResultType = valueType;
+  }
+
   public override void Visit(ReturnExpression e)
   {
     base.Visit(e);
@@ -60,28 +73,41 @@ public sealed class ResolveTypesPass : AbstractPass
     e.ResultType = e.Variable.ResultType;
   }
 
-  /// <summary>
-  /// Выполняет проверки типов для последовательности выражений:
-  ///  1. Пустая последовательность `()` не возвращает значения.
-  ///  2. Непустая последовательность возвращает результат последнего выражения.
-  ///  3. Все выражения в последовательности должны быть соблюдать семантику языка.
-  /// </summary>
-  public override void Visit(SequenceExpression e)
-  {
-    base.Visit(e);
-    e.ResultType = e.Sequence.Count > 0 ? e.Sequence[^1].ResultType : ValueType.Void;
-  }
-
   public override void Visit(FunctionCallExpression e)
   {
     base.Visit(e);
-    e.ResultType = e.Function.ResultType;
+    if (e.FunctionOverloads == null || e.FunctionOverloads.Count == 0)
+    {
+      throw new InvalidFunctionCallException($"Function {e.Name} not found");
+    }
+
+    AbstractFunctionDeclaration? matched = e.FunctionOverloads
+    .FirstOrDefault(f =>
+        f.Parameters.Count == (e.Arguments?.Count ?? 0) &&
+        (f.Parameters.Count == 0 ||
+         f.Parameters.Select(p => p.ResultType)
+                     .SequenceEqual(e.Arguments!.Select(a => a.ResultType)))
+    );
+
+    if (matched == null)
+    {
+      throw new InvalidFunctionCallException($"No matching overload for function {e.Name}");
+    }
+
+    e.Function = matched;
+    e.ResultType = matched.ResultType;
   }
 
   public override void Visit(VariableDeclaration d)
   {
     base.Visit(d);
-    d.ResultType = d.InitialValue!.ResultType;
+    d.ResultType = d.InitialValue != null ? d.InitialValue.ResultType : ValueType.Void;
+  }
+
+  public override void Visit(ConstantDeclaration d)
+  {
+    base.Visit(d);
+    d.ResultType = d.Value.ResultType;
   }
 
   public override void Visit(AssignmentExpression e)
@@ -115,6 +141,18 @@ public sealed class ResolveTypesPass : AbstractPass
     e.ResultType = ValueType.Void;
   }
 
+  public override void Visit(PrintExpression e)
+  {
+    base.Visit(e);
+    e.ResultType = ValueType.Void;
+  }
+
+  public override void Visit(DeclarationExpression e)
+  {
+    base.Visit(e);
+    e.ResultType = ValueType.Void;
+  }
+
   /// <summary>
   /// Вычисляет тип результата бинарной операции.
   /// Возвращает null, если бинарная операция не может быть выполнена с указанными типами.
@@ -124,6 +162,27 @@ public sealed class ResolveTypesPass : AbstractPass
     switch (operation)
     {
       case BinaryOperation.Plus:
+        if (left == ValueType.Int && right == ValueType.Int)
+        {
+          return ValueType.Int;
+        }
+
+        if (left == ValueType.Float && right == ValueType.Float)
+        {
+          return ValueType.Float;
+        }
+
+        if ((left == ValueType.Float && right == ValueType.Int) || (left == ValueType.Int && right == ValueType.Float))
+        {
+          return ValueType.Float;
+        }
+
+        if (left == ValueType.String && right == ValueType.String)
+        {
+          return ValueType.String;
+        }
+
+        return null;
       case BinaryOperation.Minus:
       case BinaryOperation.Multiplication:
       case BinaryOperation.Division:

@@ -37,7 +37,7 @@ public class SemanticsChecker
     ];
   }
 
-  public void Check(Expression program)
+  public void Check(BlockStatement program)
   {
     foreach (AbstractPass pass in passes)
     {

@@ -29,8 +29,6 @@ public class Lexer(string text)
     { "Pi", TokenType.Pi },
     { "Euler", TokenType.Euler },
     { "main", TokenType.Main },
-    { "switch", TokenType.Switch },
-    { "case", TokenType.Case },
     { "break", TokenType.Break },
     { "continue", TokenType.Continue },
     { "default", TokenType.Default },

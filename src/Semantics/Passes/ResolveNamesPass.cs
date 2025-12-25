@@ -5,6 +5,8 @@ using Semantics.Exceptions;
 using Semantics.Helpers;
 using Semantics.Symbols;
 
+using ValueType = Runtime.ValueType;
+
 namespace Semantics.Passes;
 
 /// <summary>
@@ -26,7 +28,14 @@ public sealed class ResolveNamesPass : AbstractPass
   {
     base.Visit(e);
 
-    e.Function = symbols.GetFunctionDeclaration(e.Name);
+    IReadOnlyList<AbstractFunctionDeclaration> overloads = symbols.GetFunctionOverloads(e.Name);
+
+    if (overloads.Count == 0)
+    {
+      throw new InvalidFunctionCallException($"Function '{e.Name}' not found");
+    }
+
+    e.FunctionOverloads = overloads;
   }
 
   public override void Visit(VariableExpression e)
@@ -45,7 +54,7 @@ public sealed class ResolveNamesPass : AbstractPass
   public override void Visit(ConstantDeclaration d)
   {
     base.Visit(d);
-    d.DeclaredType = d.DeclaredTypeName != null ? symbols.GetTypeDeclaration(d.DeclaredTypeName) : null;
+    d.DeclaredType = symbols.GetTypeDeclaration(d.DeclaredTypeName);
     symbols.DeclareVariable(d);
   }
 
@@ -73,11 +82,12 @@ public sealed class ResolveNamesPass : AbstractPass
     symbols = new SymbolsTable(symbols);
     try
     {
+      VariableDeclaration var = new VariableDeclaration(e.IteratorName, "int", e.StartValue);
+      symbols.DeclareVariable(var);
       base.Visit(e);
     }
     finally
     {
-      // Возвращаемся к прежней таблице символов.
       symbols = symbols.Parent!;
     }
   }
@@ -91,14 +101,29 @@ public sealed class ResolveNamesPass : AbstractPass
 
   public override void Visit(IfElseExpression e)
   {
+    e.Condition.Accept(this);
+
     symbols = new SymbolsTable(symbols);
     try
     {
-      base.Visit(e);
+      e.ThenBranch.Accept(this);
     }
     finally
     {
       symbols = symbols.Parent!;
+    }
+
+    if (e.ElseBranch != null)
+    {
+      symbols = new SymbolsTable(symbols);
+      try
+      {
+        e.ElseBranch.Accept(this);
+      }
+      finally
+      {
+        symbols = symbols.Parent!;
+      }
     }
   }
 }
