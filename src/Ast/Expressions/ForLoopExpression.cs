@@ -1,25 +1,23 @@
+using Ast.Declarations;
+
 namespace Ast.Expressions;
 
 public sealed class ForLoopExpression : Expression
 {
   public ForLoopExpression(
-        string iteratorName,
-        Expression startValue,
+        VariableDeclaration var,
         Expression endCondition,
         Expression? stepValue,
         Expression body
     )
   {
-    IteratorName = iteratorName;
-    StartValue = startValue;
+    VariableDeclaration = var;
     EndCondition = endCondition;
     StepValue = stepValue;
     Body = body;
   }
 
-  public string IteratorName { get; }
-
-  public Expression StartValue { get; }
+  public VariableDeclaration VariableDeclaration { get; }
 
   public Expression EndCondition { get; }
 

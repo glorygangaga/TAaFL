@@ -4,8 +4,6 @@ using Ast;
 using Ast.Declarations;
 using Ast.Expressions;
 
-using Execution;
-
 using Lexer;
 
 using Runtime;
@@ -21,18 +19,10 @@ namespace Parser;
 public class Parser
 {
   private readonly TokenStream tokens;
-  private readonly IEnvironment environment;
 
   public Parser(string source)
   {
     tokens = new TokenStream(source);
-    environment = new FakeEnvironment();
-  }
-
-  public Parser(IEnvironment environmentParser, string code)
-  {
-    environment = environmentParser;
-    tokens = new TokenStream(code);
   }
 
   /// <summary>
@@ -50,6 +40,10 @@ public class Parser
     if (!IsTopLevelDeclaration())
     {
       expressions.Add(ParseMainFunction());
+    }
+    else
+    {
+      throw new UnexpectedLexemeException(TokenType.Main, tokens.Peek());
     }
 
     return new BlockStatement(expressions);
@@ -69,9 +63,7 @@ public class Parser
     {
       case TokenType.Const:
       case TokenType.Let:
-        Declaration decl = ParseValueDeclaration();
-        Match(TokenType.Semicolon);
-        return decl;
+        return ParseValueDeclaration();
       case TokenType.Func:
         return ParseFunctionDeclaration();
       default:
@@ -166,7 +158,6 @@ public class Parser
       case TokenType.Let:
       case TokenType.Const:
         Declaration decl = ParseValueDeclaration();
-        Match(TokenType.Semicolon);
         return new DeclarationExpression(decl);
       case TokenType.Semicolon:
         tokens.Advance();
@@ -263,41 +254,22 @@ public class Parser
   }
 
   /// <summary>
-  /// for_statement = "for", "(", for_init, [ expression ], ";", [ for_update ], ")", block ;.
-  /// for_init = variable_declaration | expression_statement | empty_statement ;.
-  /// for_update = expression | empty_statement ;.
+  /// for_statement = "for", "(", variable_declaration, expression, ";",  expression , ")", block ;.
   /// </summary>
   private Expression ParseForExpr()
   {
     Match(TokenType.For);
     Match(TokenType.OpenParenthesis);
-    string name;
-    Expression forInit;
 
-    switch (tokens.Peek().Type)
-    {
-      case TokenType.Let:
-        tokens.Advance();
-        name = tokens.Peek().Value!.ToString();
-        tokens.Advance();
-        Match(TokenType.ColonTypeIndication);
-        Match(TokenType.Int);
-        Match(TokenType.Assignment);
+    VariableDeclaration var = ParseVariableDeclaration();
 
-        forInit = ParseExpr();
-        break;
-      default:
-        throw new Exception("");
-    }
-
-    Match(TokenType.Semicolon);
     Expression endCondition = ParseExpr();
     Match(TokenType.Semicolon);
     Expression stepValue = ParseExpr();
     Match(TokenType.CloseParenthesis);
     Expression body = ParseBlock();
 
-    return new ForLoopExpression(name, forInit, endCondition, stepValue, body);
+    return new ForLoopExpression(var, endCondition, stepValue, body);
   }
 
   /// <summary>
@@ -380,7 +352,7 @@ public class Parser
   /// Парсинг let
   /// variable_declaration = "let", identifier, ":", type [ "=", expression ], ";";.
   /// </summary>
-  private Declaration ParseVariableDeclaration()
+  private VariableDeclaration ParseVariableDeclaration()
   {
     tokens.Advance();
     string name = tokens.Peek().Value!.ToString();
@@ -406,6 +378,8 @@ public class Parser
       tokens.Advance();
       value = ParseExpr();
     }
+
+    Match(TokenType.Semicolon);
 
     return new VariableDeclaration(name, type, value);
   }
@@ -452,6 +426,8 @@ public class Parser
 
     Match(TokenType.Assignment);
     Expression value = ParseExpr();
+
+    Match(TokenType.Semicolon);
 
     return new ConstantDeclaration(name, type, value);
   }
@@ -718,7 +694,6 @@ public class Parser
           value = new UnaryOperationExpression(UnaryOperation.Decrement, value);
           continue;
         case TokenType.OpenParenthesis:
-        case TokenType.OpenBlockComments:
           value = ParsePostfixOperator();
           continue;
 
@@ -786,7 +761,7 @@ public class Parser
 
   /// <summary>
   /// Парсинг инпута
-  /// input_expr = "input", "(", [ expression ], ")" ;.
+  /// input_expr = "input", "(", ")" ;.
   /// </summary>
   private Expression ParseInput()
   {
@@ -794,18 +769,7 @@ public class Parser
     Match(TokenType.OpenParenthesis);
     Match(TokenType.CloseParenthesis);
 
-    Value value = environment.Read();
-
-    ValueType type = value switch
-    {
-      _ when value.IsInt() => ValueType.Int,
-      _ when value.IsFloat() => ValueType.Float,
-      _ when value.IsBool() => ValueType.Bool,
-      _ when value.IsString() => ValueType.String,
-      _ => throw new InvalidOperationException($"Unknown value type: {value}")
-    };
-
-    return new LiteralExpression(type, value);
+    return new FunctionCallExpression("input", []);
   }
 
   /// <summary>
@@ -818,7 +782,7 @@ public class Parser
     Match(TokenType.OpenParenthesis);
     List<Expression> values = ParseExpressionList();
     Match(TokenType.CloseParenthesis);
-    return new PrintExpression(values);
+    return new FunctionCallExpression("print", values);
   }
 
   /// <summary>
@@ -896,7 +860,7 @@ public class Parser
 
   /// <summary>
   /// Парсинг постфиксных операторов.
-  /// postfix_operator = function_call | index_access | "++" | "--" ;.
+  /// postfix_operator = function_call | "++" | "--" ;.
   /// </summary>
   private Expression ParsePostfixOperator()
   {

@@ -4,38 +4,45 @@ namespace Execution;
 
 public sealed class BuiltinFunctions
 {
-  private readonly Dictionary<string, Func<List<Value>, Value>> functions = new()
+  private readonly Context context;
+
+  private readonly Dictionary<string, Func<List<Value>, Value>> functions;
+
+  public BuiltinFunctions(Context context)
   {
-    { "abs", Abs },
-    { "min", Min },
-    { "max", Max },
-    { "pow", Pow },
-    { "round", Round },
-    { "ceil", Ceil },
-    { "floor", Floor },
-    { "length", Length },
-    { "contains", Contains },
-    { "startsWith", StartsWith },
-    { "endsWith", EndsWith },
-    { "toLower", ToLower },
-    { "toUpper", ToUpper },
-    { "trim", Trim },
-    { "indexOf", IndexOf },
-    { "lastIndexOf", LastIndexOf },
-    { "replace", Replace },
-    { "toString", ToString },
-    { "toInt", ToInt },
-    { "toFloat", ToFloat },
-    { "toBool", ToBool },
-    { "isInt", IsInt },
-    { "isFloat", IsFloat },
-    { "isBool", IsBool },
-    { "isStr", IsStr },
-  };
+    this.context = context;
 
-  private static readonly BuiltinFunctions InstanceValue = new();
-
-  public static BuiltinFunctions Instance => InstanceValue;
+    functions = new Dictionary<string, Func<List<Value>, Value>>
+    {
+      { "abs", Abs },
+      { "min", Min },
+      { "max", Max },
+      { "pow", Pow },
+      { "round", Round },
+      { "ceil", Ceil },
+      { "floor", Floor },
+      { "length", Length },
+      { "contains", Contains },
+      { "startsWith", StartsWith },
+      { "endsWith", EndsWith },
+      { "toLower", ToLower },
+      { "toUpper", ToUpper },
+      { "trim", Trim },
+      { "indexOf", IndexOf },
+      { "lastIndexOf", LastIndexOf },
+      { "replace", Replace },
+      { "toString", ToString },
+      { "toInt", ToInt },
+      { "toFloat", ToFloat },
+      { "toBool", ToBool },
+      { "isInt", IsInt },
+      { "isFloat", IsFloat },
+      { "isBool", IsBool },
+      { "isStr", IsStr },
+      { "print", Print },
+      { "input", Input },
+    };
+  }
 
   public Value Invoke(string name, List<Value> arguments)
   {
@@ -74,6 +81,27 @@ public sealed class BuiltinFunctions
       throw new ArgumentException(
         $"Function '{name}' expects {count} arguments, but got {args.Count}");
     }
+  }
+
+  private Value Print(List<Value> args)
+  {
+    if (args.Count == 0)
+    {
+      throw new ArgumentException("Got 0 arguments in print function.");
+    }
+
+    foreach (Value val in args)
+    {
+      context.Environment.Write(val);
+    }
+
+    return args[^1];
+  }
+
+  private Value Input(List<Value> args)
+  {
+    ExpectCount(args, 0, "input");
+    return context.Environment.Read();
   }
 
   private static Value Abs(List<Value> args)

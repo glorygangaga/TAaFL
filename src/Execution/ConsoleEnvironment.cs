@@ -8,7 +8,7 @@ public class ConsoleEnvironment : IEnvironment
 {
   public void Write(Value value)
   {
-    Console.WriteLine("Result: " + value.ToString());
+    Console.WriteLine(value.ToString());
   }
 
   public Value Read()

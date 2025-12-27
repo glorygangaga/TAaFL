@@ -1,22 +1,14 @@
-﻿using Ast.Expressions;
-
-using Execution;
-
-using Semantics;
+﻿using Execution;
 
 namespace Interpreter;
 
 public class Interpreter
 {
   private readonly Context context;
-  private readonly IEnvironment environment;
-  private readonly Builtins builtins;
 
-  public Interpreter(Context newContext, IEnvironment newEnvironment)
+  public Interpreter(Context newContext)
   {
     context = newContext;
-    environment = newEnvironment;
-    builtins = new Builtins();
   }
 
   public void Execute(string code)
@@ -26,11 +18,8 @@ public class Interpreter
       throw new ArgumentException("Source code cannot be null or empty", nameof(code));
     }
 
-    Parser.Parser parser = new(environment, code);
+    Parser.Parser parser = new(code);
     BlockStatement program = parser.ParseProgram();
-
-    SemanticsChecker checker = new(builtins.Functions, builtins.Types);
-    checker.Check(program);
 
     AstEvaluator evaluator = new AstEvaluator(context);
     evaluator.Evaluate(program);

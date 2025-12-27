@@ -12,7 +12,7 @@ public class InterpreterTest
 
   [Theory]
   [MemberData(nameof(GetExamplePrograms))]
-  public void ParseTest(string source, Tuple<List<Value>, List<string>> tuple)
+  public void ParseEnvironmentTest(string source, Tuple<List<Value>, List<string>> tuple)
   {
     List<Value> inputValues = tuple.Item1;
     List<string> expected = tuple.Item2;
@@ -25,41 +25,16 @@ public class InterpreterTest
       environment.Write(inputValues[i]);
     }
 
-    Interpreter interpreter = new Interpreter(context, environment);
+    Interpreter interpreter = new Interpreter(context);
     interpreter.Execute(source);
 
     IReadOnlyList<Value> actualValues = environment.Results;
 
     Assert.Equal(expected.Count, actualValues.Count);
-
     for (int i = 0; i < expected.Count; ++i)
     {
       Value actualValue = actualValues[i];
-
-      if (actualValue.IsFloat())
-      {
-        decimal actualDecimal = (decimal)actualValue.AsFloat();
-        decimal expectedDecimal = decimal.Parse(expected[i], System.Globalization.CultureInfo.InvariantCulture);
-
-        if (Math.Abs(expectedDecimal - actualDecimal) > Tolerance)
-        {
-          Assert.Fail($"Expected does not match actual at index {i}: {expectedDecimal} != {actualDecimal}");
-        }
-      }
-      else if (actualValue.IsInt())
-      {
-        int actualInt = actualValue.AsInt();
-        int expectedInt = int.Parse(expected[i], System.Globalization.CultureInfo.InvariantCulture);
-        Assert.Equal(expectedInt, actualInt);
-      }
-      else if (actualValue.IsString())
-      {
-        Assert.Equal(expected[i], actualValue.AsString());
-      }
-      else
-      {
-        Assert.Equal(expected[i], actualValue.ToString());
-      }
+      CheckValues(expected[i], actualValue);
     }
   }
 
@@ -71,43 +46,17 @@ public class InterpreterTest
   {
     FakeEnvironment environment = new FakeEnvironment();
     Context context = new Context(environment);
-    Interpreter interpreter = new Interpreter(context, environment);
+    Interpreter interpreter = new Interpreter(context);
     interpreter.Execute(code);
 
     IReadOnlyList<Value> actualValues = environment.Results;
-
     List<string> actual = actualValues.Select(v => v.ToString()).ToList();
 
     Assert.Equal(expected.Count, actual.Count);
-
     for (int i = 0; i < expected.Count; ++i)
     {
       Value actualValue = actualValues[i];
-
-      if (actualValue.IsFloat())
-      {
-        decimal actualDecimal = (decimal)actualValue.AsFloat();
-        decimal expectedDecimal = decimal.Parse(expected[i], System.Globalization.CultureInfo.InvariantCulture);
-
-        if (Math.Abs(expectedDecimal - actualDecimal) > Tolerance)
-        {
-          Assert.Fail($"Expected does not match actual at index {i}: {expectedDecimal} != {actualDecimal}");
-        }
-      }
-      else if (actualValue.IsInt())
-      {
-        int actualInt = actualValue.AsInt();
-        int expectedInt = int.Parse(expected[i], System.Globalization.CultureInfo.InvariantCulture);
-        Assert.Equal(expectedInt, actualInt);
-      }
-      else if (actualValue.IsString())
-      {
-        Assert.Equal(expected[i], actualValue.AsString());
-      }
-      else
-      {
-        Assert.Equal(expected[i], actualValue.ToString());
-      }
+      CheckValues(expected[i], actualValue);
     }
   }
 
@@ -117,7 +66,7 @@ public class InterpreterTest
   {
     FakeEnvironment environment = new FakeEnvironment();
     Context context = new Context(environment);
-    Interpreter interpreter = new Interpreter(context, environment);
+    Interpreter interpreter = new Interpreter(context);
     Assert.ThrowsAny<Exception>(() => interpreter.Execute(code));
   }
 
@@ -298,27 +247,28 @@ public class InterpreterTest
   {
     return new TheoryData<string, List<string>>
       {
-        { "print(1);", new List<string> { "1" } },
-        { "print(10 + 5 - 2);", new List<string> { "13" } },
-        { "print(-10 - 5 - -5);", new List<string> { "-10" } },
-        { "print(10 * 5 / 2);", new List<string> { "25" } },
-        { "print(6 // 5);", new List<string> { "1" } },
-        { "print(10 % 2);", new List<string> { "0" } },
-        { "print(1.128 - 8 + 7.5);", new List<string> { "0.628" } },
-        { "print(2 ** 5);", new List<string> { "32" } },
-        { "print((2 + 3) / 10);", new List<string> { "0" } },
-        { "print((-2) ** 10);", new List<string> { "1024" } },
-        { "print(-2 ** 10);", new List<string> { "-1024" } },
-        { "print(--5);", new List<string> { "4" } },
-        { "print(++5);", new List<string> { "6" } },
-        { "print(5--);", new List<string> { "4" } },
-        { "print(5++);", new List<string> { "6" } },
-        { "print(Pi * 2);", new List<string> { "6.28318530716" } },
-        { "print(not not true);", new List<string> { "True" } },
-        { "print(not 5);", new List<string> { "False" } },
-        { "print(5 > 1 and 4 >= 4);", new List<string> { "True" } },
-        { "print(1 < 0 or 13 <= 3);", new List<string> { "False" } },
-        { "print(312 != 31);", new List<string> { "True" } },
+        { "func main:void() { print(1); }", new List<string> { "1" } },
+        { "func main:void() { print(10 + 5 - 2) };", new List<string> { "13" } },
+        { "func main:void() { print(-10 - 5 - -5); }", new List<string> { "-10" } },
+        { "func main:void() { print(10 * 5 / 2); }", new List<string> { "25" } },
+        { "func main:void() { print(6 // 5); }", new List<string> { "1" } },
+        { "func main:void() { print(10 % 2); }", new List<string> { "0" } },
+        { "func main:void() { print(1.128 - 8 + 7.5); }", new List<string> { "0.628" } },
+        { "func main:void() { print(2 ** 5); }", new List<string> { "32" } },
+        { "func main:void() { print((2 + 3) / 10); }", new List<string> { "0" } },
+        { "func main:void() { print((-2) ** 10); }", new List<string> { "1024" } },
+        { "func main:void() { print(-2 ** 10); }", new List<string> { "-1024" } },
+        { "func main:void() { print(--5); }", new List<string> { "4" } },
+        { "func main:void() { print(++5); }", new List<string> { "6" } },
+        { "func main:void() { print(5--); }", new List<string> { "4" } },
+        { "func main:void() { print(5++); }", new List<string> { "6" } },
+        { "func main:void() { print(Pi * 2); }", new List<string> { "6.28318530716" } },
+        { "func main:void() { print(not not true); }", new List<string> { "True" } },
+        { "func main:void() { print(not 5); }", new List<string> { "False" } },
+        { "func main:void() { print(5 > 1 and 4 >= 4); }", new List<string> { "True" } },
+        { "func main:void() { print(1 < 0 or 13 <= 3); }", new List<string> { "False" } },
+        { "func main:void() { print(312 != 31); }", new List<string> { "True" } },
+        { "func main:void() { 1 > 0 ? print(1, true) : print(2, false); }", new List<string> { "1", "True" } },
       };
   }
 
@@ -326,41 +276,41 @@ public class InterpreterTest
   {
     return new TheoryData<string, List<string>>
       {
-        { "print(min(5, 4));", new List<string> { "4" } },
-        { "print(max(5, 4));", new List<string> { "5" } },
-        { "print(abs(-15));", new List<string> { "15" } },
-        { "print(pow(2, 10));", new List<string> { "1024" } },
-        { "print(ceil(1.4));", new List<string> { "2" } },
-        { "print(floor(1.6));", new List<string> { "1" } },
-        { "print(round(1.4));", new List<string> { "1" } },
-        { "print(min(max(1, 5), min(10, 6)));", new List<string> { "5" } },
-        { "print(length(\"Hello\"));", new List<string> { "5" } },
-        { "print(contains(\"Hello\", \"ell\"));", new List<string> { "True" } },
-        { "print(startsWith(\"Hello\", \"He\"));", new List<string> { "True" } },
-        { "print(endsWith(\"Hello\", \"lo\"));", new List<string> { "True" } },
-        { "print(toLower(\"Hello\"));", new List<string> { "hello" } },
-        { "print(toUpper(\"Hello\"));", new List<string> { "HELLO" } },
-        { "print(trim(\"  Hello  \"));", new List<string> { "Hello" } },
-        { "print(indexOf(\"Hello\", \"l\"));", new List<string> { "2" } },
-        { "print(lastIndexOf(\"Hello\", \"l\"));", new List<string> { "3" } },
-        { "print(lastIndexOf(\"Hello\", \"l\"));", new List<string> { "3" } },
-        { "print(toString(42));", new List<string> { "42" } },
-        { "print(toString(3.14));", new List<string> { "3.14" } },
-        { "print(toString(true));", new List<string> { "True" } },
-        { "print(toInt(\"123\"));", new List<string> { "123" } },
-        { "print(toInt(3.99));", new List<string> { "3" } },
-        { "print(toFloat(\"3.14\"));", new List<string> { "3.14" } },
-        { "print(toFloat(5));", new List<string> { "5" } },
-        { "print(toBool(\"true\"));", new List<string> { "True" } },
-        { "print(toBool(1));", new List<string> { "True" } },
-        { "print(toBool(0));", new List<string> { "False" } },
-        { "print(isInt(\"123\"));", new List<string> { "False" } },
-        { "print(isInt(123));", new List<string> { "True" } },
-        { "print(isFloat(3.14));", new List<string> { "True" } },
-        { "print(isBool(true));", new List<string> { "True" } },
-        { "print(isStr(\"text\"));", new List<string> { "True" } },
-        { "print(\"Hello\");", new List<string> { "Hello" } },
-        { "print(\"Hello\" + \" world\");", new List<string> { "Hello world" } },
+        { "func main:void() { print(min(5, 4)); }", new List<string> { "4" } },
+        { "func main:void() { print(max(5, 4)); }", new List<string> { "5" } },
+        { "func main:void() { print(abs(-15)); }", new List<string> { "15" } },
+        { "func main:void() { print(pow(2, 10)); }", new List<string> { "1024" } },
+        { "func main:void() { print(ceil(1.4)); }", new List<string> { "2" } },
+        { "func main:void() { print(floor(1.6)); }", new List<string> { "1" } },
+        { "func main:void() { print(round(1.4)); }", new List<string> { "1" } },
+        { "func main:void() { print(min(max(1, 5), min(10, 6))); }", new List<string> { "5" } },
+        { "func main:void() { print(length(\"Hello\")); }", new List<string> { "5" } },
+        { "func main:void() { print(contains(\"Hello\", \"ell\")); }", new List<string> { "True" } },
+        { "func main:void() { print(startsWith(\"Hello\", \"He\")); }", new List<string> { "True" } },
+        { "func main:void() { print(endsWith(\"Hello\", \"lo\")); }", new List<string> { "True" } },
+        { "func main:void() { print(toLower(\"Hello\")); }", new List<string> { "hello" } },
+        { "func main:void() { print(toUpper(\"Hello\")); }", new List<string> { "HELLO" } },
+        { "func main:void() { print(trim(\"  Hello  \")); }", new List<string> { "Hello" } },
+        { "func main:void() { print(indexOf(\"Hello\", \"l\")); }", new List<string> { "2" } },
+        { "func main:void() { print(lastIndexOf(\"Hello\", \"l\")); }", new List<string> { "3" } },
+        { "func main:void() { print(lastIndexOf(\"Hello\", \"l\")); }", new List<string> { "3" } },
+        { "func main:void() { print(toString(42)); }", new List<string> { "42" } },
+        { "func main:void() { print(toString(3.14)); }", new List<string> { "3.14" } },
+        { "func main:void() { print(toString(true)); }", new List<string> { "True" } },
+        { "func main:void() { print(toInt(\"123\")); }", new List<string> { "123" } },
+        { "func main:void() { print(toInt(3.99)); }", new List<string> { "3" } },
+        { "func main:void() { print(toFloat(\"3.14\")); }", new List<string> { "3.14" } },
+        { "func main:void() { print(toFloat(5)); }", new List<string> { "5" } },
+        { "func main:void() { print(toBool(\"true\")); }", new List<string> { "True" } },
+        { "func main:void() { print(toBool(1)); }", new List<string> { "True" } },
+        { "func main:void() { print(toBool(0)); }", new List<string> { "False" } },
+        { "func main:void() { print(isInt(\"123\")); }", new List<string> { "False" } },
+        { "func main:void() { print(isInt(123)); }", new List<string> { "True" } },
+        { "func main:void() { print(isFloat(3.14)); }", new List<string> { "True" } },
+        { "func main:void() { print(isBool(true)); }", new List<string> { "True" } },
+        { "func main:void() { print(isStr(\"text\")); }", new List<string> { "True" } },
+        { "func main:void() { print(\"Hello\"); }", new List<string> { "Hello" } },
+        { "func main:void() { print(\"Hello\" + \" world\"); }", new List<string> { "Hello world" } },
       };
   }
 
@@ -417,14 +367,41 @@ public class InterpreterTest
   {
     return new TheoryData<string>
         {
-          "let value: int = 0",
-          "const max: int = 0;",
-          "const value: int;",
-          "const element: void = 0;",
-          "const i: str = 1.0;",
-          "func nothing:int() {} nothing();",
-          "func nothing:int(a: str) {} nothing(1);",
-          "func nothing:int() { return 1.4; } nothing();",
+          "const a: int = 0;",
+          "func main:void() { let value: int = 0 }",
+          "func main:void() { const max: int = 0; }",
+          "func main:void() { const value: int; }",
+          "func main:void() { const element: void = 0; }",
+          "func nothing:int() {} func main:void() { nothing(); }",
+          "func nothing:int(a: str) {} func main:void() { nothing(1); }",
         };
+  }
+
+  private static void CheckValues(string expected, Value actualValue)
+  {
+    if (actualValue.IsFloat())
+    {
+      decimal actualDecimal = (decimal)actualValue.AsFloat();
+      decimal expectedDecimal = decimal.Parse(expected, System.Globalization.CultureInfo.InvariantCulture);
+
+      if (Math.Abs(expectedDecimal - actualDecimal) > Tolerance)
+      {
+        Assert.Fail($"Expected does not match actual: {expectedDecimal} != {actualDecimal}");
+      }
+    }
+    else if (actualValue.IsInt())
+    {
+      int actualInt = actualValue.AsInt();
+      int expectedInt = int.Parse(expected, System.Globalization.CultureInfo.InvariantCulture);
+      Assert.Equal(expectedInt, actualInt);
+    }
+    else if (actualValue.IsString())
+    {
+      Assert.Equal(expected, actualValue.AsString());
+    }
+    else
+    {
+      Assert.Equal(expected, actualValue.ToString());
+    }
   }
 }

@@ -6,8 +6,6 @@ using Execution.Exceptions;
 
 using Runtime;
 
-using ValueType = Runtime.ValueType;
-
 namespace Execution;
 
 public sealed class AstEvaluator : IAstVisitor
@@ -188,9 +186,10 @@ public sealed class AstEvaluator : IAstVisitor
       args.Add(values.Pop());
     }
 
-    if (BuiltinFunctions.Instance.IsBuiltin(e.Name))
+    BuiltinFunctions funcs = new BuiltinFunctions(context);
+    if (funcs.IsBuiltin(e.Name))
     {
-      values.Push(BuiltinFunctions.Instance.Invoke(e.Name, args));
+      values.Push(funcs.Invoke(e.Name, args));
       return;
     }
 
@@ -230,8 +229,6 @@ public sealed class AstEvaluator : IAstVisitor
         values.Push(Value.Void);
         return;
       }
-
-      ValueType getRetType = GetTypeByValue(ret.Value);
 
       values.Push(ret.Value);
     }
@@ -298,10 +295,8 @@ public sealed class AstEvaluator : IAstVisitor
     context.PushScope(new Scope());
     try
     {
-      e.StartValue.Accept(this);
-      int it = values.Pop().AsInt();
-      context.DefineVariable(e.IteratorName, new Value(it));
-
+      e.VariableDeclaration.Accept(this);
+      int it = context.GetValue(e.VariableDeclaration.Name).AsInt();
       int step = 1;
       if (e.StepValue != null)
       {
@@ -327,7 +322,7 @@ public sealed class AstEvaluator : IAstVisitor
         }
 
         it += step;
-        context.AssignVariable(e.IteratorName, new Value(it));
+        context.AssignVariable(e.VariableDeclaration.Name, new Value(it));
       }
     }
     catch (BreakLoopException)
@@ -349,20 +344,6 @@ public sealed class AstEvaluator : IAstVisitor
     {
       expr.Accept(this);
       last = values.Pop();
-    }
-
-    values.Push(last);
-  }
-
-  public void Visit(PrintExpression e)
-  {
-    Value last = new Value(0);
-
-    foreach (Expression expr in e.Values)
-    {
-      expr.Accept(this);
-      last = values.Pop();
-      context.Environment.Write(last);
     }
 
     values.Push(last);
@@ -447,18 +428,5 @@ public sealed class AstEvaluator : IAstVisitor
     {
       context.PopScope();
     }
-  }
-
-  private ValueType GetTypeByValue(Value value)
-  {
-    return value switch
-    {
-      { } when value.IsBool() => ValueType.Bool,
-      { } when value.IsFloat() => ValueType.Float,
-      { } when value.IsString() => ValueType.String,
-      { } when value.IsInt() => ValueType.Int,
-      { } when value == Value.Void => ValueType.Void,
-      _ => throw new NotImplementedException()
-    };
   }
 }
