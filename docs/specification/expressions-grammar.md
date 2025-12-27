@@ -141,7 +141,7 @@ arith_expr =
 term_expr, { ("+" | "-"), term_expr } ;
 
 term_expr =
-prefix_expr, { ("\*" | "/" | "%" | "//"), prefix_expr } ;
+prefix_expr, { ("*" | "/" | "%" | "//"), prefix_expr } ;
 
 prefix_expr =
 { prefix_operator }, power_expr ;
@@ -150,7 +150,7 @@ prefix_operator =
 "++" | "--" | "+" | "-" | "not" ;
 
 power_expr =
-postfix_expr, { "\*\*", power_expr } ;
+postfix_expr, { "**", power_expr } ;
 
 postfix_expr = primary_expr, { postfix_operator } ;
 
@@ -171,10 +171,10 @@ identifier
 (* === ВЫРАЖЕНИЯ ВВОДА-ВЫВОДА === *)
 
 input_expr = 
-    "input", "(", ")" ;
+"input", "(", ")" ;
 
 print_expr = 
-    "print", "(", [ expression_list ], ")" ;
+"print", "(", [ expression_list ], ")" ;
 
 (* === ПРИСВАИВАЕМЫЕ ВЫРАЖЕНИЯ === *)
 

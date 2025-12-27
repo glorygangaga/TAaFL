@@ -128,7 +128,7 @@ block =
 (* === ВВОД-ВЫВОД === *)
 
 input_statement =
-"input", "(", [ expression ], ")" ";" ;
+"input", "(", ")" ";" ;
 
 print_statement =
 "print", "(", [ expression_list ], ")" ";" ;

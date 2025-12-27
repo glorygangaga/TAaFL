@@ -1,5 +1,5 @@
 ```cpy
-func calculate_discriminant:int(a:int, b:int, c:int)
+func calculate_discriminant:float(a:float, b:float, c:float)
 {
     return b** 2 - 4 * a * c;
 }
@@ -37,8 +37,8 @@ func main:void()
         }
         else
         {
-            let x1:int = (- b + d ** 0.5) / (2 * a);
-            let x2:int = (- b - d ** 0.5) / (2 * a);
+            let x1:float = (- b + d ** 0.5) / (2 * a);
+            let x2:ifloatnt = (- b - d ** 0.5) / (2 * a);
             /// возведение в степень можно заменить на встроенную функцию pow(d, 0,5)
             print(2, x1, x2)
         }
